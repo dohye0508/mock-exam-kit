@@ -19,7 +19,9 @@ def _header_rules(meta):
     return [
         ("2025학년도 대학수학능력시험 문제지", "%s %s 문제지" % (meta.get("year", "2025학년도"), meta.get("exam", "대학수학능력시험"))),
         ("과학탐구", meta.get("area", "과학탐구")),
-        ("제4교시", meta.get("period", "제4교시")),
+        # 둥근 상자의 "제 4 교시"는 전각 공백(fwSpace)으로 띄워져 있다
+        ("<hp:t>제<hp:fwSpace/>4<hp:fwSpace/>교시</hp:t>",
+         "<hp:t>제<hp:fwSpace/>%s<hp:fwSpace/>교시</hp:t>" % (re.sub(r"\D", "", meta.get("period", "")) or "4")),
         # 과목명 "(화학Ⅰ)" 은 '(화' '학' 'Ⅰ' ')' 네 run 으로 쪼개져 있음
         (re.compile(r'(<hp:run charPrIDRef="(?:30|31)"><hp:t>)\(화(</hp:t>)'), r"\1(" + subj[:1] + r"\2"),
         (re.compile(r'(<hp:run charPrIDRef="(?:30|49)"><hp:t>)학(</hp:t>)'), r"\1" + subj[1:] + r"\2"),
