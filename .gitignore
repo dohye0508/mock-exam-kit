@@ -1,0 +1,13 @@
+# 실제 문항·정답·산출물은 올리지 않는다 (툴·양식·예시만 커밋)
+content/*
+!content/example.md
+!content/.gitkeep
+output/
+*.hwp
+*.hwpx
+*.pdf
+!templates/**/*.hwpx
+__pycache__/
+*.pyc
+.venv/
+build/
