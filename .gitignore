@@ -6,6 +6,8 @@ output/
 *.hwp
 *.hwpx
 *.pdf
+!assets/reference/pdf/과학탐구/**/*.pdf
+!assets/reference/pdf/직업탐구/**/*.pdf
 !templates/**/*.hwpx
 __pycache__/
 *.pyc
