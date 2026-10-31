@@ -1,0 +1,2 @@
+assets/reference/tongsarang/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+assets/reference/tongsarang/**/*.png filter=lfs diff=lfs merge=lfs -text

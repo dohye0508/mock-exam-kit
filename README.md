@@ -73,7 +73,16 @@ examkit/    parse_md.py(문법) build.py(조립) hwpx.py(XML 조각) figures.py(
 templates/kice-sci/   평가원 과탐 양식을 HWPX로 풀어 둔 것 + frags/(첫 문단 등 조각)
 skills/science-apparatus/   실험 기구·배치 도식 SVG 스케치 스킬(gist 기반), figures.sketch 가 호출
 content/    example.md 만 커밋. 실제 교시 파일과 answers/ 는 로컬 보관
+assets/reference/tongsarang/   한국사·사탐·통합사회 기출 문항 이미지 (Git LFS)
 ```
+
+## 기출 문항 이미지 참고 자료
+
+`assets/reference/tongsarang/<과목>/<학년도>/<원본 파일명>.jpg`에 [통사랑](https://tongsarang.kr/)에서 2026-10-31에 내려받은 문항 이미지 13,985개를 보관한다. 한국사 1,340문항, 통합사회 805문항, 사회탐구 9과목 11,840문항이다. 사이트에 등록된 전체 분량이며 역대 모든 시험을 빠짐없이 포함하지는 않는다.
+
+이미지는 삽화만 잘라낸 파일이 아니라 지문·선택지를 포함한 문항 전체이다. 원본 파일명과 학년도 표기를 유지했다. ZIP, PDF, 검색용 HTML, 정답 목록은 포함하지 않는다. 출제용 `content/` 및 문제지 양식 `templates/`와 분리된 참고 자료이며, 공개 자료라는 사실이 자유로운 수정·재배포 허락을 의미하지 않는다.
+
+이미지 파일은 Git LFS로 관리한다. Git LFS를 설치한 환경에서 저장소를 복제하고 `git lfs pull`을 실행하면 실제 이미지가 내려받아진다.
 
 ## 다른 양식 쓰기
 1. 양식 HWP를 한글에서 HWPX로 저장 → 압축 해제해 `templates/<이름>/` 에 둔다.
