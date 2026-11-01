@@ -1,6 +1,6 @@
 # mock-exam-kit
 
-AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. 시각 자료의 유형별 실제 기출 예시와 선택 다운로드 방법은 [자료 참고 가이드](docs/visual-reference-guide.md)를 따른다. AI 공통 지침은 AGENTS.md에서 관리하고, 학교별 규칙은 [ishs/PROJECT.md](ishs/PROJECT.md)로 분리한다.
+AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 모의고사를 만들면 [새 프로젝트 시작하기](docs/project-template.md)** 순서로 간다. 시각 자료의 유형별 실제 기출 예시와 선택 다운로드 방법은 [자료 참고 가이드](docs/visual-reference-guide.md)를 따른다. 공통 지침은 AGENTS.md, 주제별 규칙은 프로젝트 문서로 분리한다. 완성 예시(인천과학고 '인곽' 모의고사)는 `ishs` 브랜치에만 있다.
 
 ## 새 세션에서 시작하는 순서 — 필독
 
@@ -8,7 +8,7 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. 시각 자료의 �
 
 1. `git status --short`, `git branch --show-current`로 브랜치·기존 변경을 확인한다.
 2. 이 README → [AGENTS.md](AGENTS.md) → [재현 작업 절차](docs/reproduction-guide.md)를 읽는다.
-3. 기존 인곽 시험을 이어 만들면 [ishs/PROJECT.md](ishs/PROJECT.md), [ishs/README.md](ishs/README.md), [prompt.md](prompt.md), [인수인계 상태](ishs/HANDOVER.md)를 읽는다. 다른 시험은 별도 프로젝트 지침을 만든다.
+3. 새 주제면 [새 프로젝트 시작하기](docs/project-template.md)대로 프로젝트 문서를 한 장 쓰고, 문항 작성은 [출제 노하우](docs/authoring-style.md)를 따른다. 기존 프로젝트를 이어 만들면 그 브랜치의 프로젝트 문서(인곽: `ishs` 브랜치의 `ishs/PROJECT.md`·`ishs/HANDOVER.md`)를 읽는다.
 4. 아래 표에서 작업 대상의 **원본·빌더·상세 지침**을 확인하고 실제 파일을 연다. 문서만 읽고 새 양식을 다시 그리지 않는다.
 5. 필요한 원문·그림·글꼴을 확인한 뒤 새 출력 폴더에 빌드하고, 검사·렌더링을 통과한 결과만 배포한다. 과거 PDF나 `--reuse`를 최신 결과로 간주하지 않는다.
 
@@ -43,7 +43,7 @@ python -m examkit build content/1교시.md -o output # output/<title>.hwpx, .hwp
 python -m examkit build "content/*교시.md"          # 여러 개
 python -m examkit build content/example.md --no-convert   # 한글 없이 hwpx만
 ```
-현재 인곽 프로젝트의 문항 작성 원칙은 [prompt.md](prompt.md)를 읽는다. 다른 시험에 학교 전용 규칙을 그대로 적용하지 않는다. 문법 예시는 [content/example.md](content/example.md).
+문항 작성 원칙은 [출제 노하우](docs/authoring-style.md)와 [prompt.md](prompt.md)(유형 배합·배점·평가원 어투)를 읽는다. 문법 예시는 [content/example.md](content/example.md).
 
 ### 교시별 표지
 
