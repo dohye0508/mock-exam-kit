@@ -21,6 +21,15 @@ python -m examkit build content/example.md --no-convert   # 한글 없이 hwpx�
 ```
 문항 작성 원칙은 [prompt.md](prompt.md)를 먼저 읽는다. 문법 전체 예시는 [content/example.md](content/example.md).
 
+### 정답표와 정답 및 해설
+```bash
+python tools/answer_key.py 정답표.pdf content/1교시.md content/2교시.md      # 평가원 양식 정답표(교시마다 한 쪽)
+python tools/build_key.py 해설.pdf content/1교시.md content/2교시.md         # 정답 및 해설(3단 편집). content/N교시_해설.md를 읽는다
+python tools/build_final.py out                                              # 원본 문제 합본 + 정답표 + 정답 및 해설을 한 번에(한글 필요)
+python tools/build_final.py out --reuse                                      # 이미 변환한 시험지 PDF를 재사용
+```
+해설 파일(`content/N교시_해설.md`)은 `## 1. [출제의도] …`로 시작하고 바로 아래 줄에 `@answer 3`을 적는다(문항 md의 정답과 다르면 빌드가 경고한다). 본문은 문단으로 쓰며 `<b> <i> <sub> <sup>`와 유니코드 기호를 쓸 수 있다.
+
 ## 문항 Markdown 문법
 ```markdown
 ---
