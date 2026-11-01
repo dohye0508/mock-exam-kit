@@ -9,6 +9,8 @@ output/
 !assets/reference/pdf/과학탐구/**/*.pdf
 !assets/reference/pdf/직업탐구/**/*.pdf
 !templates/**/*.hwpx
+!templates/covers/*.hwp
+!templates/covers/*-source.pdf
 __pycache__/
 *.pyc
 .venv/
