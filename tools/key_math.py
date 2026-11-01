@@ -53,6 +53,11 @@ def render_math(expression, display, directory):
     expression = expression.strip()
     if not expression:
         raise ValueError('빈 수식은 조판할 수 없습니다')
+    # mathtext가 모르는 흔한 LaTeX 별칭. 한글 단위는 \text{} 대신 수식 밖에 쓴다
+    for alias, name in ((r'\\ge(?![a-zA-Z])', r'\\geq'), (r'\\le(?![a-zA-Z])', r'\\leq'), (r'\\ne(?![a-zA-Z])', r'\\neq')):
+        expression = re.sub(alias, name, expression)
+    if re.search(r'\\text\{[^}]*[가-힣]', expression):
+        raise ValueError('수식 안 한글(\\text{초} 등)은 글리프가 없습니다. 단위는 수식 밖 본문에 쓰세요: ' + expression)
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     key = ('hancom-readable-frac-v2', expression, bool(display), MATH_SIZE, MATH_DPI)

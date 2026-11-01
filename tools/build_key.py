@@ -56,7 +56,10 @@ def read_meta_answers(md):
     for q in re.split(r'(?m)^(?=## \d+\.)',s)[1:]:
         n = int(re.match(r'## (\d+)\.',q).group(1))
         a = re.findall(r'^@answer\s+([1-5])\s*$',q,re.M)
-        if n in ans or len(a)!=1: raise ValueError(f'{md}: {n}번 중복 또는 @answer 오류')
+        if n in ans: raise ValueError(f'{md}: {n}번 중복')
+        if len(a)!=1:
+            bad = re.findall(r'^@answer\s+(\S+)',q,re.M)
+            raise ValueError(f'{md}: {n}번 @answer는 정답 선택지 번호(1~5) 하나여야 합니다 (지금: {bad or "없음"})')
         ans[n] = int(a[0])
     if not ans or sorted(ans)!=list(range(1,len(ans)+1)):
         raise ValueError(f'{md}: 문항 번호가 1부터 연속하지 않습니다')
@@ -71,6 +74,9 @@ def read_explanations(path):
         if n in out: raise ValueError(f'{path}: {n}번 중복')
         title = re.sub(r'^## \d+\.\s*','',head)
         m = re.match(r'\s*@answer ([1-5])\s*\n',body)
+        bad = re.match(r'\s*@answer\s+(\S+)',body)
+        if bad and not m:
+            raise ValueError(f'{path}: {n}번 @answer에는 문항 번호가 아니라 정답 선택지 번호(1~5)를 적습니다 (지금: {bad.group(1)})')
         a = int(m.group(1)) if m else None
         body = body[m.end():] if m else body
         paras = [p.strip() for p in re.split(r'\n\s*\n',body.strip()) if p.strip()]
@@ -129,6 +135,8 @@ class ExplanationAssets:
         return result
 
     def inline(self, text):
+        if '$$' in text:
+            raise ValueError('$$ 수식은 위아래에 빈 줄을 둔 단독 문단으로 씁니다. 문장 안에서는 $…$를 쓰세요: ' + text[:60])
         pieces = re.split(r'(?<!\\)(\$[^$]+\$)', text)
         return ''.join(self.math(s[1:-1]) if s.startswith('$') and s.endswith('$')
                        else esc_keep_tags(s) for s in pieces)

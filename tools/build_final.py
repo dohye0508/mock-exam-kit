@@ -20,6 +20,8 @@ def main():
     out = args[0]
     mds = args[1:] or sorted(glob.glob(os.path.join(ROOT, "content", "[0-9]교시.md")))
     os.makedirs(out, exist_ok=True)
+    # 한 번에 끝나도록 문항 검사부터 같은 명령 안에서 한다(실패하면 여기서 멈춤)
+    subprocess.run([sys.executable, "-m", "examkit", "check", *mds], cwd=ROOT, check=True)
     pdfs = []
     for md in mds:
         n = os.path.basename(md)[0]
