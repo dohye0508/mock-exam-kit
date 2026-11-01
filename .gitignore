@@ -2,6 +2,9 @@
 content/*
 !content/example.md
 !content/.gitkeep
+!content/[1-4]교시.md
+!content/[1-4]교시_해설.md
+!ishs/pdf/*.pdf
 output/
 *.hwp
 *.hwpx
