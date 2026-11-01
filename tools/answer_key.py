@@ -65,5 +65,6 @@ if __name__ == "__main__":
     doc = fitz.open()
     for md in sys.argv[2:]:
         page(doc, *meta_and_rows(md))
-    doc.save(sys.argv[1])
+    doc.subset_fonts()
+    doc.save(sys.argv[1], garbage=4, deflate=True)
     print(sys.argv[1], doc.page_count, "쪽")
