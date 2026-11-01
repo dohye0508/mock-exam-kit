@@ -151,7 +151,7 @@ def assemble(pdfs, covers, mds):
         meta = metadata(md)
         with fitz.open(pdf) as body, fitz.open(cover) as front:
             if len(body) != int(meta['pages']):
-                raise ValueError(f'{pdf}: expected {meta["pages"]} body pages, got {len(body)} (already covered?)')
+                raise ValueError(f'{pdf}: 본문이 {len(body)}쪽인데 MD의 pages는 {meta["pages"]}입니다. 실제 쪽수에 맞게 pages를 고치거나 배치를 줄이세요(이미 표지가 붙은 PDF를 넣었는지도 확인)')
             validate_cover(front, meta)
             toc.append([1, f"{meta['period']} {meta['subject']}", len(book) + 1])
             rect = body[0].rect

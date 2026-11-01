@@ -16,9 +16,16 @@ TEMPLATES = os.path.join(ROOT, "templates")
 def _header_rules(meta):
     """kice-sci 양식의 제목 글자 치환 규칙. (원본 → 새 글자)"""
     subj = meta.get("subject", "")
+    area = re.sub(r"\s*영역$", "", meta.get("area", "과학탐구"))   # "○○ 영역"으로 적어도 "영역 영역"이 되지 않게
+    box_w = max(15941, (len(subj) + 2) * 2700)   # 과목명 길이에 맞춘 글상자 폭(원본 "(화학Ⅰ)"은 15941)
     return [
+        # 짝수 쪽 머리글의 과목명 글상자: 원본은 "(화학Ⅰ)" 폭(15941)으로 고정이라 긴 과목명이 두 줄로 꺾여 본문을 덮친다
+        (re.compile(r'(<hp:curSz width=")15941(" height="3685"/>)'), r"\g<1>%d\g<2>" % box_w),
+        (re.compile(r'(<hp:drawText lastWidth=")15941(")'), r"\g<1>%d\g<2>" % box_w),
+        (re.compile(r'(<hp:sz width=")15941(" widthRelTo="ABSOLUTE" height="3685")'), r"\g<1>%d\g<2>" % box_w),
+        (re.compile(r'(<hp:rotationInfo angle="0" centerX=")7970(" centerY="1842")'), r"\g<1>%d\g<2>" % (box_w // 2)),
         ("2025학년도 대학수학능력시험 문제지", "%s %s 문제지" % (meta.get("year", "2025학년도"), meta.get("exam", "대학수학능력시험"))),
-        ("과학탐구", meta.get("area", "과학탐구")),
+        ("과학탐구", area),
         # 둥근 상자의 "제 4 교시"는 전각 공백(fwSpace)으로 띄워져 있다
         ("<hp:t>제<hp:fwSpace/>4<hp:fwSpace/>교시</hp:t>",
          "<hp:t>제<hp:fwSpace/>%s<hp:fwSpace/>교시</hp:t>" % (re.sub(r"\D", "", meta.get("period", "")) or "4")),

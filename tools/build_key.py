@@ -1,7 +1,13 @@
 """Measured reference PDF layout. See docs/explanation-format.md."""
-import html, math, os, re, shutil, sys, tempfile
+import hashlib, html, math, os, re, shutil, sys, tempfile
 from pathlib import Path
 import pymupdf as fitz
+try:
+    from .key_math import render_math
+    from .key_tables import plan_columns
+except ImportError:
+    from key_math import render_math
+    from key_tables import plan_columns
 
 CIRC = '①②③④⑤'
 W, H = 841., 1190.
@@ -14,6 +20,7 @@ GRID_TOP, GRID_ROW_HEIGHT = 242.187, 12.834
 BODY_AFTER_GRID = 25.1
 TOP, BOTTOM = 169.966,1068.493
 FONT_DIR = Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts'
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def font_paths():
@@ -34,9 +41,12 @@ body { margin: 0; font-family: hb; font-size: 8.76pt; line-height: 1.54566; text
 p { margin: 0 0 0 9.96pt; }
 h3 { font-size: 8.647pt; line-height: 1.565; font-weight: bold; text-align: left; margin: 7pt 0 2pt 0; }
 .start { margin-top: 0; }
-table { border-collapse: collapse; margin: 3pt 0 3pt 9.96pt; width: 95%; }
-td, th { border: 0.36pt solid black; font-size: 8.1pt; font-weight: normal; text-align: center; padding: 1pt 1.5pt; }
+table { border-collapse: collapse; margin: 3pt 0 3pt 9.96pt; width: auto; }
+td, th { border: 0.36pt solid black; font-size: 8.76pt; font-weight: normal; text-align: center; vertical-align: middle; line-height: 11.8pt; padding: 0 1.5pt; }
 sub, sup { font-size: 70%; }
+.equation { text-align: left; margin: 4pt 0 4pt 9.96pt; }
+.illustration { text-align: center; margin: 5pt 0 4pt 9.96pt; }
+.caption { text-align: center; font-size: 7.8pt; margin: 1pt 0 4pt 9.96pt; }
 '''
 
 def read_meta_answers(md):
@@ -46,7 +56,10 @@ def read_meta_answers(md):
     for q in re.split(r'(?m)^(?=## \d+\.)',s)[1:]:
         n = int(re.match(r'## (\d+)\.',q).group(1))
         a = re.findall(r'^@answer\s+([1-5])\s*$',q,re.M)
-        if n in ans or len(a)!=1: raise ValueError(f'{md}: {n}번 중복 또는 @answer 오류')
+        if n in ans: raise ValueError(f'{md}: {n}번 중복')
+        if len(a)!=1:
+            bad = re.findall(r'^@answer\s+(\S+)',q,re.M)
+            raise ValueError(f'{md}: {n}번 @answer는 정답 선택지 번호(1~5) 하나여야 합니다 (지금: {bad or "없음"})')
         ans[n] = int(a[0])
     if not ans or sorted(ans)!=list(range(1,len(ans)+1)):
         raise ValueError(f'{md}: 문항 번호가 1부터 연속하지 않습니다')
@@ -61,6 +74,9 @@ def read_explanations(path):
         if n in out: raise ValueError(f'{path}: {n}번 중복')
         title = re.sub(r'^## \d+\.\s*','',head)
         m = re.match(r'\s*@answer ([1-5])\s*\n',body)
+        bad = re.match(r'\s*@answer\s+(\S+)',body)
+        if bad and not m:
+            raise ValueError(f'{path}: {n}번 @answer에는 문항 번호가 아니라 정답 선택지 번호(1~5)를 적습니다 (지금: {bad.group(1)})')
         a = int(m.group(1)) if m else None
         body = body[m.end():] if m else body
         paras = [p.strip() for p in re.split(r'\n\s*\n',body.strip()) if p.strip()]
@@ -71,19 +87,149 @@ def esc_keep_tags(t):
     t = html.escape(t,quote=False)
     return re.sub(r'&lt;(/?(?:b|i|sub|sup)|br\s*/?)&gt;',r'<\1>',t)
 
-def paragraph_html(p):
+class ExplanationAssets:
+    """Local, reproducible 600dpi mathtext images and existing illustration assets for Story.
+
+    LaTeX math syntax is rendered with matplotlib (no TeX installation/network).
+    Unknown commands and over-wide equations fail instead of printing raw markup.
+    """
+    def __init__(self, directory):
+        self.directory = Path(directory)
+        self.cache = {}
+        self.heights = {}
+        self.depths = {}
+        self.widths = {}
+        self.bodyfont = fitz.Font(fontfile=str(font_paths()['body']))
+
+    def math(self, expression, display=False):
+        expression = expression.strip()
+        key = (expression, display)
+        if key in self.cache:
+            return self.cache[key]
+        chemical=re.fullmatch(r'\\mathrm\{([A-Za-z0-9()]+)\}((?:[_^](?:\{[0-9+\-]+\}|[0-9]))*)',expression)
+        if chemical and not display:
+            base,tail=chemical.groups()
+            result=html.escape(base)
+            width=self.bodyfont.text_length(base,fontsize=8.76)
+            for op,value in re.findall(r'([_^])(\{[^}]+\}|[0-9])',tail):
+                value=value.strip('{}').replace('-','−')
+                tag='sub' if op=='_' else 'sup'
+                result+=f'<{tag}>'+html.escape(value)+f'</{tag}>'
+                width+=self.bodyfont.text_length(value,fontsize=6.132)
+            height,depth=8.76,0.0
+        else:
+            width,height,depth,name = render_math(expression,display,self.directory)
+            if width > COLS[0][1]-COLS[0][0]-12:
+                raise ValueError(f'수식이 단 폭을 넘습니다. 계산을 여러 줄로 나누세요: {expression}')
+            vertical='bottom' if display else f'-{depth:.3f}pt'
+            result = (f'<img src="{name}" width="{width:.3f}" height="{height:.3f}" '
+                      f'style="width:{width:.3f}pt;height:{height:.3f}pt;vertical-align:{vertical}" '
+                      f'alt="{html.escape(expression,quote=True)}"/>')
+            if not display:
+                line_height=max(13.54,height+2*depth+1)
+                result=f'<span style="line-height:{line_height:.3f}pt">'+result+'</span>'
+        self.cache[key] = result
+        self.heights[key] = height
+        self.depths[key] = depth
+        self.widths[key] = width
+        return result
+
+    def inline(self, text):
+        if '$$' in text:
+            raise ValueError('$$ 수식은 위아래에 빈 줄을 둔 단독 문단으로 씁니다. 문장 안에서는 $…$를 쓰세요: ' + text[:60])
+        pieces = re.split(r'(?<!\\)(\$[^$]+\$)', text)
+        return ''.join(self.math(s[1:-1]) if s.startswith('$') and s.endswith('$')
+                       else esc_keep_tags(s) for s in pieces)
+
+    def measure(self, text):
+        width=0
+        for part in re.split(r'(?<!\\)(\$[^$]+\$)',text):
+            if part.startswith('$') and part.endswith('$'):
+                expression=part[1:-1].strip()
+                self.math(expression)
+                width+=self.widths[(expression,False)]
+            else:
+                plain=html.unescape(re.sub(r'<[^>]*>','',part))
+                width+=self.bodyfont.text_length(plain,fontsize=8.76)
+        return width
+
+    def illustration(self, label, path):
+        from PIL import Image, ImageOps
+        source = (ROOT/path).resolve()
+        if not source.is_relative_to(ROOT) or not source.is_file():
+            raise ValueError(f'해설 그림은 저장소 안의 실제 파일이어야 합니다: {path}')
+        name = 'figure-' + hashlib.sha256(source.read_bytes()).hexdigest()[:20] + '.png'
+        with Image.open(source) as im:
+            im = ImageOps.exif_transpose(im).convert('RGBA')
+            white = Image.new('RGBA', im.size, 'white')
+            white.alpha_composite(im)
+            im = white.convert('L')
+            width = min(COLS[0][1]-COLS[0][0]-12, im.width*72/300)
+            height = width*im.height/im.width
+            if height > 260:
+                scale = 260/height
+                width, height = width*scale, 260
+            im.thumbnail((int(width*600/72), int(height*600/72)))
+            im.save(self.directory/name, optimize=True)
+        return (f'<p class="illustration"><img src="{name}" '
+                f'style="width:{width:.3f}pt;height:{height:.3f}pt" '
+                f'width="{width:.3f}" height="{height:.3f}"/></p>'
+                + (f'<p class="caption">{esc_keep_tags(label)}</p>' if label else ''))
+
+
+def paragraph_html(p, assets=None):
+    inline = assets.inline if assets else esc_keep_tags
+    if p.startswith('$$') and p.endswith('$$'):
+        if not assets: raise ValueError('수식 자산 렌더러가 필요합니다')
+        expression=p[2:-2].strip()
+        content=assets.math(expression, display=True)
+        height=assets.heights[(expression,True)]
+        depth=assets.depths[(expression,True)]
+        return f'<p class="equation" style="line-height:{height+2:.2f}pt">'+content+'</p>'
+    figure = re.fullmatch(r'!\[([^\]]*)\]\(([^)]+)\)', p.strip())
+    if figure:
+        if not assets: raise ValueError('그림 자산 렌더러가 필요합니다')
+        return assets.illustration(*figure.groups())
     lines = p.splitlines()
     if len(lines)>1 and lines[0].startswith('|') and re.fullmatch(r'[\s|:\-]+',lines[1]):
         rows = [line for i,line in enumerate(lines) if i!=1]
-        return '<table>'+''.join('<tr>'+''.join('<td>'+esc_keep_tags(c.strip())+'</td>' for c in line.strip().strip('|').split('|'))+'</tr>' for line in rows)+'</table>'
-    return '<p>'+esc_keep_tags(' '.join(lines))+'</p>'
+        cells = [[c.strip() for c in line.strip().strip('|').split('|')] for line in rows]
+        nc = len(cells[0])
+        if any(len(row)!=nc for row in cells): raise ValueError('해설 표의 열 수가 일치하지 않습니다')
+        if not assets: raise ValueError('해설 표는 글폭 측정 렌더러가 필요합니다')
+        widths=plan_columns(cells,assets.measure,width=COLS[0][1]-COLS[0][0]-9.96)
+        rendered=[]
+        for row in cells:
+            cols=[]
+            for ci,c in enumerate(row):
+                content=inline(c)
+                content=re.sub(r'vertical-align:-[\d.]+pt','vertical-align:middle',content)
+                cell_line_height=11.8
+                if re.fullmatch(r'\$[^$]+\$',c) and '<img ' in content:
+                    expression=c[1:-1].strip()
+                    height=assets.heights[(expression,False)]
+                    if height>10:
+                        content=re.sub(r'</?span[^>]*>','',content)
+                        # Measured correction for a tall formula in 8.76pt body
+                        # table text; ordinary one-line expressions keep baseline.
+                        content=content.replace('vertical-align:middle',f'vertical-align:{6.5-height/2:.3f}pt')
+                        cell_line_height=max(11.8,height+4)
+                cols.append(f'<td width="{widths[ci]:.2f}" style="width:{widths[ci]:.2f}pt;line-height:{cell_line_height:.2f}pt">{content}</td>')
+            rendered.append('<tr>'+''.join(cols)+'</tr>')
+        return '<table>'+''.join(rendered)+'</table>'
+    text=' '.join(lines)
+    content=inline(text)
+    # Expand only the line containing a tall formula, not the whole paragraph.
+    align='left' if '$' in text else 'justify'
+    return f'<p style="line-height:13.54pt;text-align:{align}">'+content+'</p>'
 
-def section_html(expl):
+
+def section_html(expl, assets=None):
     parts=[]
     for n,(title,_,paras) in sorted(expl.items()):
         cls = ' class="start"' if not parts else ''
         parts.append(f'<h3{cls}>{n}. {esc_keep_tags(title)}</h3>')
-        parts.extend(paragraph_html(p) for p in paras)
+        parts.extend(paragraph_html(p,assets) for p in paras)
     return ''.join(parts)
 
 def text_center(page,text,x,baseline,size,key,fonts,italic=False):
@@ -139,63 +285,58 @@ def build(out_pdf,mds,answers_only=False):
     doc=fitz.open()
     with tempfile.TemporaryDirectory(prefix='examkit-key-',ignore_cleanup_errors=True) as tmp:
         shutil.copyfile(paths['body'],Path(tmp)/'body.ttf')
+        assets=ExplanationAssets(tmp)
         archive=fitz.Archive(tmp)
         for si,(meta,ans,expl) in enumerate(sections):
-            tmp_pdf=Path(tmp)/f'section{si}.pdf'
-            writer=fitz.DocumentWriter(str(tmp_pdf))
-            pg,col=0,0
-            dev=writer.begin_page(fitz.Rect(0,0,W,H))
+            # Render each explanation once, then place its complete PDF fragment.
+            # Repeated Story.place/reset/continuation lost tail lines at column ends
+            # in MuPDF; never rely on that continuation for solution content.
+            sec=fitz.open()
+            page=sec.new_page(width=W,height=H)
+            col=0
             top=GRID_TOP+math.ceil(len(ans)/5)*GRID_ROW_HEIGHT+BODY_AFTER_GRID
             for n,item in sorted(expl.items()):
-                story=fitz.Story(section_html({n:item}),user_css=CSS,archive=archive)
-                _,whole=story.place(fitz.Rect(0,0,COLS[0][1]-COLS[0][0],10000))
-                full_height=whole[3]
-                story.reset()
-                # Keep the heading and at least two body lines in the same column.
-                # MuPDF Story does not reliably implement CSS break-after: avoid.
-                if BOTTOM-top<57:
+                fragment_path=Path(tmp)/f'section{si}-question{n}.pdf'
+                markup=section_html({n:item},assets)
+                story=fitz.Story(markup,user_css=CSS,archive=archive)
+                width=COLS[0][1]-COLS[0][0]
+                more,filled=story.place(fitz.Rect(0,0,width,10000))
+                if more:
+                    raise ValueError(f'{meta.get("period")} {n}번 해설이 너무 깁니다')
+                height=math.ceil(filled[3])+1
+                if height>BOTTOM-TOP:
+                    raise ValueError(f'{meta.get("period")} {n}번: 한 단보다 긴 해설을 먼저 나누세요')
+                writer=fitz.DocumentWriter(str(fragment_path))
+                dev=writer.begin_page(fitz.Rect(0,0,width,10000))
+                story.draw(dev)
+                writer.end_page()
+                writer.close()
+                if top+height>BOTTOM:
                     col+=1
                     top=TOP
-                while True:
-                    if col==3:
-                        writer.end_page()
-                        dev=writer.begin_page(fitz.Rect(0,0,W,H))
-                        pg,col=pg+1,0
-                    left,right=COLS[col]
-                    bottom=BOTTOM
-                    # Do not push a lone final line (e.g. '이다.') into the next column.
-                    spill=full_height-(BOTTOM-top)
-                    if 0<spill<27.08:
-                        bottom-=27.08-spill
-                    more,filled=story.place(fitz.Rect(left,top,right,bottom))
-                    story.draw(dev)
-                    if not more:
-                        top=filled[3]+7
-                        break
-                    col+=1
-                    top=TOP
-                    full_height=10000  # the remaining story is already in continuation
-                    if pg>100: raise RuntimeError('해설이 지면에 들어가지 않습니다')
-            writer.end_page()
-            writer.close()
-            del writer
-            with fitz.open(tmp_pdf) as sec:
-                for k,page in enumerate(sec):
-                    # The reference uses stroked Haansoft Batang for question heads.
-                    # Set text render mode once per font-size run, not a duplicate overlay.
-                    for xref in page.get_contents():
-                        stream=sec.xref_stream(xref)
+                if col==3:
+                    page=sec.new_page(width=W,height=H)
+                    col=0
+                left,right=COLS[col]
+                with fitz.open(fragment_path) as fragment:
+                    for xref in fragment[0].get_contents():
+                        stream=fragment.xref_stream(xref)
                         def weight(m):
                             size=float(m.group(1))
                             return m.group(0)+(b' 0.16 w 2 Tr' if abs(size-8.647)<.001 else b' 0 Tr')
-                        sec.update_stream(xref,re.sub(rb'/F\d+ ([\d.]+) Tf',weight,stream))
-                    for key,(_,path) in fonts.items(): page.insert_font(fontname=key,fontfile=str(path))
-                    if k==0:
-                        draw_title(page,meta,fonts)
-                        draw_section(page,meta,ans,fonts)
-                    for x in (307.224,533.656): page.draw_line((x,TOP),(x,BOTTOM),width=.36)
-                    text_center(page,str(k+1),421.519,1101.962,20.0247,'myeong',fonts,italic=True)
-                doc.insert_pdf(sec)
+                        fragment.update_stream(xref,re.sub(rb'/F\d+ ([\d.]+) Tf',weight,stream))
+                    page.show_pdf_page(fitz.Rect(left,top,right,top+height),fragment,0,
+                                       clip=fitz.Rect(0,0,width,height))
+                top+=height+7
+            for k,page in enumerate(sec):
+                for key,(_,path) in fonts.items(): page.insert_font(fontname=key,fontfile=str(path))
+                if k==0:
+                    draw_title(page,meta,fonts)
+                    draw_section(page,meta,ans,fonts)
+                for x in (307.224,533.656): page.draw_line((x,TOP),(x,BOTTOM),width=.36)
+                text_center(page,str(k+1),421.519,1101.962,20.0247,'myeong',fonts,italic=True)
+            doc.insert_pdf(sec)
+            sec.close()
     doc.set_metadata({'title':'정답 및 해설','creator':'mock-exam-kit / build_key.py'})
     doc.subset_fonts()
     return doc,[]
