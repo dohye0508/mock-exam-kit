@@ -43,7 +43,7 @@ issuer: 상식 모의고사 출제팀
 1. 문항 20개를 `content/<N>교시.md`에 쓴다. 계산·퍼즐은 코드로 검산한다.
 2. 그림이 필요하면 글자 없는 틀을 만들어(직접 생성 또는 [요청서](illustration-request.md)) `assets/illust/`에 두고, MD에서 `::: figure file`로 넣고 글을 얹는다([배치 노트](hwpx-layout-notes.md)).
 3. 해설을 `content/<N>교시_해설.md`에 먼저 쓴다. 문항과 번호·정답을 맞춘다([해설 양식](explanation-format.md)).
-4. `python -m examkit check content/<N>교시.md` → `python tools/build_final.py out content/<N>교시.md`. 표지 포함 문제지·정답표·해설 PDF가 함께 나온다.
+4. `python -m examkit check content/<N>교시.md` → `python tools/build_final.py out content/<N>교시.md`. 표지 포함 문제지·정답표·해설 PDF가 합본으로, 그리고 `out/교시별/`에 교시마다 따로 나온다. 배포할 때는 전체 합본과 교시별 파일을 모두 제공한다.
 5. `tools/qpos.py`·`colfill.py`·`widows.py`·`qcrop.py`로 배치와 외톨이 줄을 보고, 전체 쪽을 렌더링해 확인한다([재현 절차](reproduction-guide.md) 6절).
 
 ## 4. 환경

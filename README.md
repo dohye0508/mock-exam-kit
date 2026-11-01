@@ -31,7 +31,7 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 �
 | 정답 및 해설(3단) | 원본 PDF 실측값을 `tools/build_key.py`에 구현. 표 열 배분 `tools/key_tables.py`, 일반 굵기 수식 `tools/key_math.py`. 별도 HWP 원본은 없음 | 내용은 `content/N교시_해설.md`, 정답은 문항 MD. `tools/build_key.py` | [해설 양식](docs/explanation-format.md), [미리보기](docs/explanation-layout-preview.png) |
 | 독립 정답표 | `tools/answer_key.py`에 그리는 코드. 해설 안의 작은 정답표와 별개 | 문항 MD에서 정답/배점 읽기 → `tools/answer_key.py` | [재현 작업 절차](docs/reproduction-guide.md) |
 | 그림과 글상자 | 최종 PNG는 `assets/illust/`, 코드 도식은 `assets/illust/sources/`, 자료 렌더러는 `examkit/materials.py` | MD의 `figure file`·`textN`·`bubbleN`·`tableN`; 정확한 도식은 코드 | [HWPX 배치 노트](docs/hwpx-layout-notes.md), [기출 가이드](docs/visual-reference-guide.md) |
-| 배포 합본 | 위 결과를 조립 | `tools/build_final.py`: 교시별 표지+본문 / 정답표 / 해설의 세 PDF | [재현 작업 절차](docs/reproduction-guide.md) |
+| 배포 합본 | 위 결과를 조립 | `tools/build_final.py`: 합본 세 PDF(표지+본문 / 정답표 / 해설) + `교시별/`에 교시마다 문제지·정답표·해설 세 PDF | [재현 작업 절차](docs/reproduction-guide.md) |
 | 문항 내용(출제·수정) | 노하우는 코드가 아니라 문서 | `content/N교시.md`; 대안 제시 → 작성 → 코드 검산 → 빌드·잘라 보기 | [출제 노하우](docs/authoring-style.md), [prompt.md](prompt.md), 프로젝트 지침 |
 | 삽화 요청·납품(작업 AI가 이미지를 못 만들 때) | 외부 생성기에 zip으로 넘기는 요청 묶음(저장소 밖) | `PROMPT.md`+`layout.png`+`style_k.png` 작성 → 받은 PNG를 `assets/illust/`에 → `DELIVERY.md` 좌표로 글 얹기 | [삽화 요청서](docs/illustration-request.md) |
 | 색 표시 검토본 | `examkit/review.py` | `python -m examkit review …`; 정답이 드러나는 검토 전용 | [재현 작업 절차](docs/reproduction-guide.md) |
@@ -72,7 +72,7 @@ python tools/build_final.py out                                   # 교시마다
 ```bash
 python tools/answer_key.py 정답표.pdf content/1교시.md content/2교시.md      # 평가원 양식 정답표(교시마다 한 쪽)
 python tools/build_key.py 해설.pdf content/1교시.md content/2교시.md         # 정답 및 해설(3단 편집). content/N교시_해설.md를 읽는다
-python tools/build_final.py out                                              # 원본 문제 합본 + 정답표 + 정답 및 해설을 한 번에(한글 필요)
+python tools/build_final.py out                                              # 합본 3개 + 교시별/<교시>{, 정답표, 정답 및 해설}.pdf (한글 필요)
 python tools/build_final.py out --reuse                                      # 이미 변환한 시험지 PDF를 재사용
 ```
 해설 파일(`content/N교시_해설.md`)은 `## 1. [출제의도] …`로 시작하고 바로 아래 줄에 `@answer 3`을 적는다(문항 md와 번호·정답이 다르거나 해설이 없으면 빌드가 중단된다). 예시 PDF를 실측한 지면·글꼴·정답표 규격은 [해설 양식](docs/explanation-format.md)을 따른다. 본문은 문단으로 쓰며 `<b> <i> <sub> <sup>`와 유니코드 기호를 쓸 수 있다.
