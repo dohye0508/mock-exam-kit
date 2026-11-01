@@ -1,5 +1,7 @@
 # mock-exam-kit
 
+AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. 시각 자료의 유형별 실제 기출 예시와 선택 다운로드 방법은 [자료 참고 가이드](docs/visual-reference-guide.md)를 따른다. AI 공통 지침은 AGENTS.md 한 파일에서 관리한다.
+
 수능(평가원) 탐구 영역 문제지 양식을 그대로 흉내 내는 **모의고사 문제지 생성 툴킷**.
 Markdown으로 문항을 쓰면 8절 2단·4쪽 HWP/PDF가 나온다. 그림(그래프·배치도), 표, 수식, 분수, <보기> 상자, 짝짓기 선택지를 지원한다.
 
@@ -67,6 +69,28 @@ ylabel: 학생 수(명)
 
 그림 블록 파라미터: `values1:, values2:, legend:`(복수 계열), `ylim:`, `title:`, `inch_w:/inch_h:`(그림 원본 크기), timeline은 `events: 시각|문구; 시각|문구`, table_grid는 `rows: A,B;C,D`(`-` 빈칸, `#`은 음영).
 
+외부 그림(삽화 등): `::: figure file path=assets/illust/<id>.png w=25512 h=17008` 다음 줄에 `:::`.
+- `w`·`h`는 HWPUNIT이다(1 mm ≈ 283.5). 예시 값은 90 × 60 mm.
+- 투명한 부분은 흰색으로 채운다.
+- `h`를 주면 그 가로세로비가 되도록 흰 여백을 덧댄다. 잘라 내지는 않는다.
+- 삽화 요청서와 참고 그림은 `assets/illust/handoff/<id>/`에 둔다.
+
+글자·수치가 든 자료(안내문·메신저·게시물·기사 등)는 `examkit/materials.py`가 HTML로 짜서 Chrome(또는 Edge) headless로 찍는다.
+- 쓰는 법: `::: figure <종류> w=<HWPUNIT>` 다음 줄부터 `키: 값`을 쓴다. 지면에서 실제 폭 그대로 그리며 약 384dpi이고, 흑백이다.
+- 값 안의 `\n`은 줄바꿈이다.
+- `image:`에 넣은 삽화는 둘레의 흰 여백을 잘라 쓴다.
+
+| 종류 | 무엇 | 키 |
+|---|---|---|
+| `notice` | 안내문·공지 | `title` `from` `date` `item1..` `table: 머리\|머리 ; 칸\|칸` `note` `image`(오른쪽 약 36%) |
+| `chat` | 메신저 화면 | `title` `me`(오른쪽에 보일 사람) `msg1..: 이름\|내용\|시각`. 내용이 `[사진] 경로`이면 사진 말풍선. 같은 사람이 이어서 보내면 이름·프로필 생략 |
+| `post` | SNS·봇 게시물 | `account` `time` `title` `line1..` `image` |
+| `news` | 신문 기사 | `paper` `issue` `headline` `sub` `body1..` `image` `caption`(폭이 넓으면 2단) |
+| `board` | 출발 전광판 등 | `title` `header: a\|b` `row1..: a\|b` |
+| `playlist` | 재생 목록 | `title` `row1..: 번호\|곡명\|길이` `now`(재생 중인 행 번호) |
+| `form` | 기록표·명단 | `title` `header` `row1..` `note` |
+| `sign` | 층별 안내판 | `title` `floor1..: 5F\|내용` |
+
 ## 구조
 ```
 examkit/    parse_md.py(문법) build.py(조립) hwpx.py(XML 조각) figures.py(그림) convert.py(한글 변환) cli.py
@@ -82,7 +106,7 @@ assets/reference/tongsarang/   한국사·사탐·통합사회 기출 문항 이
 
 이미지는 삽화만 잘라낸 파일이 아니라 지문·선택지를 포함한 문항 전체이다. 원본 파일명과 학년도 표기를 유지했다. ZIP, PDF, 검색용 HTML, 정답 목록은 포함하지 않는다. 출제용 `content/` 및 문제지 양식 `templates/`와 분리된 참고 자료이며, 공개 자료라는 사실이 자유로운 수정·재배포 허락을 의미하지 않는다.
 
-이미지 파일은 Git LFS로 관리한다. Git LFS를 설치한 환경에서 저장소를 복제하고 `git lfs pull`을 실행하면 실제 이미지가 내려받아진다.
+사탐·한국사·통합사회 이미지 원본 약 2.90GB와 추가 과학탐구·직업탐구 기출 문제지 고유 PDF 3,159개(4.256GB)를 Git LFS로 관리한다. 과탐·직탐은 [전체 목록](assets/reference/catalog/archive.jsonl)에서 찾고 [PDF 안내](assets/reference/pdf/README.md)에 따라 필요한 파일만 받는다. 새 작업 환경에서 전체 다운로드를 기본으로 하지 않는다. 새로 복제할 때는 `GIT_LFS_SKIP_SMUDGE=1`로 자동 다운로드를 생략하고, 기존 저장소에서는 `git lfs install --local --skip-smudge`를 설정한 뒤 `git lfs pull --include="필요한 원본 경로" --exclude=""`로 선택한 파일만 받는다. 경로가 존재하더라도 작은 텍스트 형태의 LFS 포인터일 수 있다. [과목별 예시와 PowerShell 명령](docs/visual-reference-guide.md)을 참고한다.
 
 ## 다른 양식 쓰기
 1. 양식 HWP를 한글에서 HWPX로 저장 → 압축 해제해 `templates/<이름>/` 에 둔다.

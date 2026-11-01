@@ -41,9 +41,18 @@ def main(argv=None):
     k = sub.add_parser("answers", help="정답표 md 생성")
     k.add_argument("files", nargs="+")
     k.add_argument("-o", "--out", default="content/answers")
+    r = sub.add_parser("review", help="정답을 @status 색으로 칠한 검토본을 만들고 한 PDF로 이어 붙임")
+    r.add_argument("files", nargs="+")
+    r.add_argument("-o", "--out", default="output/review")
+    r.add_argument("-t", "--template", default="kice-sci")
+    r.add_argument("--reuse", action="store_true", help="이미 만든 검토 PDF로 표지·병합만 다시")
+    r.add_argument("--overlay", action="store_true", help="글자색 대신 PDF 위에 색 상자로 정답 표시(한글 변환이 멈출 때)")
     a = ap.parse_args(argv)
 
     files = [f for pat in a.files for f in (glob.glob(pat) or [pat])]
+    if a.cmd == "review":
+        from .review import review
+        return review(files, a.out, a.template, reuse=a.reuse, overlay=a.overlay)
     rc = 0
     for f in files:
         meta, qs = parse(open(f, encoding="utf-8").read())
