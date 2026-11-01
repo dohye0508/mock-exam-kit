@@ -1,0 +1,73 @@
+"""Regular-weight math assets for the measured answer/explanation layout.
+
+HyhwpEQ supplies upright letters and numerals, Times New Roman supplies italic
+variables, and STIX supplies symbols absent from the legacy HyhwpEQ Unicode
+map.  This preserves the reference's light 9 pt equation style without
+claiming that MathText is the native Hancom equation typesetter.
+"""
+from functools import lru_cache
+import hashlib
+import os
+import re
+from pathlib import Path
+
+MATH_SIZE = 9.0
+MATH_DPI = 600
+
+
+@lru_cache(maxsize=1)
+def _font_config():
+    from matplotlib import font_manager
+
+    directory = Path(os.environ.get('WINDIR', 'C:/Windows')) / 'Fonts'
+    for filename in ('HYHWPEQ.TTF', 'times.ttf', 'timesi.ttf', 'timesbd.ttf'):
+        path = directory / filename
+        if not path.is_file():
+            raise FileNotFoundError(f'해설 수식 글꼴이 필요합니다: {path}')
+        font_manager.fontManager.addfont(str(path))
+    return {
+        'mathtext.fontset': 'custom',
+        'mathtext.default': 'it',
+        'mathtext.rm': 'HyhwpEQ',
+        'mathtext.it': 'Times New Roman:italic',
+        'mathtext.bf': 'Times New Roman:bold',
+        'mathtext.sf': 'HyhwpEQ',
+        'mathtext.tt': 'HyhwpEQ',
+        'mathtext.cal': 'STIXGeneral:italic',
+        'mathtext.fallback': 'stix',
+    }
+
+
+def render_math(expression, display, directory):
+    """Return width, height, baseline depth (pt), and a local PNG filename.
+
+    Fractions use full-size 9pt numerator/denominator glyphs. Surrounding
+    symbols retain their regular weight and size; only the containing line
+    grows. Raster dimensions preserve the equation's natural aspect ratio.
+    """
+    import matplotlib as mpl
+    from matplotlib.font_manager import FontProperties
+    from matplotlib.mathtext import MathTextParser, math_to_image
+    from PIL import Image
+
+    expression = expression.strip()
+    if not expression:
+        raise ValueError('빈 수식은 조판할 수 없습니다')
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    key = ('hancom-readable-frac-v2', expression, bool(display), MATH_SIZE, MATH_DPI)
+    filename = 'math-' + hashlib.sha256(repr(key).encode()).hexdigest()[:20] + '.png'
+    path = directory / filename
+    with mpl.rc_context(_font_config()):
+        prop = FontProperties(size=MATH_SIZE, weight='normal', math_fontfamily='custom')
+        source = '$' + re.sub(r'\\frac\b', r'\\dfrac', expression) + '$'
+        metrics = MathTextParser('path').parse(source, dpi=72, prop=prop)
+        if not path.is_file():
+            math_to_image(source, path, prop=prop, format='png', dpi=MATH_DPI,
+                          color='black')
+    with Image.open(path) as image:
+        width, height = (value * 72 / MATH_DPI for value in image.size)
+    # math_to_image builds the canvas from path metrics.  Match its sub-pixel
+    # rounded height while retaining the measured baseline of the same layout.
+    depth = float(metrics.depth) * height / float(metrics.height)
+    return width, height, depth, filename
