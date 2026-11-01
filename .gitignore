@@ -19,3 +19,4 @@ __pycache__/
 .venv/
 build/
 !ishs/pdf/**/*.pdf
+!site/papers/*.pdf
