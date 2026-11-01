@@ -1,3 +1,4 @@
 pywin32>=306
 lxml>=5
 matplotlib>=3.8
+pymupdf>=1.24  # review 명령(검토본 PDF 병합)

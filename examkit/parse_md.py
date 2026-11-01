@@ -93,6 +93,12 @@ def parse_question(n, header_rest, body_lines):
             q["set"] = SETS[s.split()[1].strip()]
         elif s.startswith("@answer"):
             q["answer"] = int(s.split()[1])
+        elif s.startswith("@status"):
+            # 검토용 표시: keep(그대로) / mod(수정) / new(새 문제·발전)
+            q["status"] = s.split()[1].strip()
+        elif s.startswith("@inline"):
+            # 선택지를 한 줄에 늘어놓는다(글자 수 기준 자동 판정을 넘어설 때)
+            q["inline_opts"] = True
         elif not q["head"]:
             q["head"] = s
         else:
