@@ -18,3 +18,4 @@ __pycache__/
 *.pyc
 .venv/
 build/
+!ishs/pdf/**/*.pdf

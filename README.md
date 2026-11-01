@@ -2,6 +2,16 @@
 
 AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 모의고사를 만들면 [새 프로젝트 시작하기](docs/project-template.md)** 순서로 간다. 시각 자료의 유형별 실제 기출 예시와 선택 다운로드 방법은 [자료 참고 가이드](docs/visual-reference-guide.md)를 따른다. 공통 지침은 AGENTS.md, 주제별 규칙은 프로젝트 문서로 분리한다. 완성 예시(인천과학고 '인곽' 모의고사)는 `ishs` 브랜치에만 있다.
 
+## AI에게 제작을 맡기는 방법
+
+저장소를 읽고 파일을 편집·실행할 수 있는 AI에게 다음처럼 요청한다.
+
+> README와 AGENTS.md, docs/agent-workflow.md를 읽고 일반 상식 모의고사를 만들어 줘. 표지·필적 확인란·과목명·문제·정답·해설까지 포함하고, 사용 가능한 이미지 생성 도구가 있으면 필요한 삽화를 만들어 넣어 줘. 최종 PDF를 렌더링해 검수해 줘.
+
+[공통 제작 절차와 실행 조건](docs/agent-workflow.md)을 따른다. Gemini CLI용 `GEMINI.md`는 공통 AGENTS.md를 가져오는 진입 파일이다. 다른 환경은 해당 문서를 직접 열어 읽게 한다. 문서만으로 도구 권한이나 이미지 생성 기능이 생기지는 않는다. Nano Banana 등의 생성 기능을 실제로 사용할 수 있으면 직접 PNG를 만들고, 없으면 필요한 요청서와 미완료 작업을 남긴다. 이미지 API를 자동 연결하는 코드는 포함되어 있지 않다.
+
+표지와 필적 문구는 프로젝트 메타데이터에서 반영한다. 현재 전체 문제지 PDF 제작에는 Windows·한컴오피스·지정 글꼴이 필요하다. 어떤 주제든 같은 제작 절차를 적용하되, 모든 환경·문항 유형에서 무조건 자동 완성을 보장하지 않는다.
+
 ## 새 세션에서 시작하는 순서 — 필독
 
 대화 기록을 알고 있다고 가정하지 않는다. 아래 순서로 파일을 읽고 **[재현 작업 절차](docs/reproduction-guide.md)**에 따라 작업한다.
@@ -18,10 +28,10 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 �
 |---|---|---|---|
 | 문제 본문(2단) | `templates/kice-sci/`의 HWPX 구성 파일. `Contents/header.xml`은 글꼴/문단, `frags/p0.xml`은 첫 쪽 머리, `Contents/masterpage*.xml`은 바탕쪽 | 내용은 `content/N교시.md`. `examkit/parse_md.py` → `examkit/build.py`·`hwpx.py` → `convert.py` | [HWPX 배치 노트](docs/hwpx-layout-notes.md), 아래 MD 문법 |
 | 각 교시 표지 | `templates/covers/csat-2017-v2-source.hwp/.hwpx/.pdf`. 받은 원본은 보존 | `tools/build_cover.py`; 제목·교시·과목은 문항 MD 메타데이터 | [표지 양식](docs/cover-format.md) |
-| 정답 및 해설(3단) | 원본 PDF 실측값을 `tools/build_key.py`에 구현. 별도 HWP 원본은 없음 | 내용은 `content/N교시_해설.md`, 정답은 문항 MD. `tools/build_key.py` | [해설 양식](docs/explanation-format.md), [미리보기](docs/explanation-layout-preview.png) |
+| 정답 및 해설(3단) | 원본 PDF 실측값을 `tools/build_key.py`에 구현. 표 열 배분 `tools/key_tables.py`, 일반 굵기 수식 `tools/key_math.py`. 별도 HWP 원본은 없음 | 내용은 `content/N교시_해설.md`, 정답은 문항 MD. `tools/build_key.py` | [해설 양식](docs/explanation-format.md), [미리보기](docs/explanation-layout-preview.png) |
 | 독립 정답표 | `tools/answer_key.py`에 그리는 코드. 해설 안의 작은 정답표와 별개 | 문항 MD에서 정답/배점 읽기 → `tools/answer_key.py` | [재현 작업 절차](docs/reproduction-guide.md) |
 | 그림과 글상자 | 최종 PNG는 `assets/illust/`, 코드 도식은 `assets/illust/sources/`, 자료 렌더러는 `examkit/materials.py` | MD의 `figure file`·`textN`·`bubbleN`·`tableN`; 정확한 도식은 코드 | [HWPX 배치 노트](docs/hwpx-layout-notes.md), [기출 가이드](docs/visual-reference-guide.md) |
-| 배포 합본 | 위 결과를 조립 | `tools/build_final.py`: 교시별 표지+본문 / 정답표 / 해설의 세 PDF | [재현 작업 절차](docs/reproduction-guide.md) |
+| 배포 합본 | 위 결과를 조립 | `tools/build_final.py`: 합본 세 PDF(표지+본문 / 정답표 / 해설) + `교시별/`에 교시마다 문제지·정답표·해설 세 PDF | [재현 작업 절차](docs/reproduction-guide.md) |
 | 문항 내용(출제·수정) | 노하우는 코드가 아니라 문서 | `content/N교시.md`; 대안 제시 → 작성 → 코드 검산 → 빌드·잘라 보기 | [출제 노하우](docs/authoring-style.md), [prompt.md](prompt.md), 프로젝트 지침 |
 | 삽화 요청·납품(작업 AI가 이미지를 못 만들 때) | 외부 생성기에 zip으로 넘기는 요청 묶음(저장소 밖) | `PROMPT.md`+`layout.png`+`style_k.png` 작성 → 받은 PNG를 `assets/illust/`에 → `DELIVERY.md` 좌표로 글 얹기 | [삽화 요청서](docs/illustration-request.md) |
 | 색 표시 검토본 | `examkit/review.py` | `python -m examkit review …`; 정답이 드러나는 검토 전용 | [재현 작업 절차](docs/reproduction-guide.md) |
@@ -56,16 +66,18 @@ python tools/build_cover.py output/covers --no-convert content/1교시.md # HWPX
 python tools/build_final.py out                                   # 교시마다 표지 1쪽을 붙인 최종 합본
 ```
 
-가형·나형·홀수형과 단답형 안내는 제거하며, 필적 확인 문구는 **지혜를 모아 지혜를 모아**다. 시험명·교시·영역·과목은 문항 MD 메타데이터에서 읽는다. 다른 프로젝트의 필적 문구/발행 표시는 `handwriting:`/`issuer:`로 바꾼다. 표지는 본문 쪽수에 포함하지 않으며, `--no-cover`로 명시적으로 생략할 수 있다. 원본 크기 표지와 본문 용지에 균일 축소한 표지를 구분한다.
+제공된 객관식 표지 프리셋은 가형·나형·홀수형과 단답형 안내를 제거한다. 필적 확인 문구는 `handwriting:`으로 정한다(생략 시 프리셋 기본 문구 사용). 시험명·교시·영역·과목은 문항 MD 메타데이터에서 읽는다. 다른 프로젝트의 필적 문구/발행 표시는 `handwriting:`/`issuer:`로 바꾼다. 표지는 본문 쪽수에 포함하지 않으며, `--no-cover`로 명시적으로 생략할 수 있다. 원본 크기 표지와 본문 용지에 균일 축소한 표지를 구분한다.
 
 ### 정답표와 정답 및 해설
 ```bash
 python tools/answer_key.py 정답표.pdf content/1교시.md content/2교시.md      # 평가원 양식 정답표(교시마다 한 쪽)
 python tools/build_key.py 해설.pdf content/1교시.md content/2교시.md         # 정답 및 해설(3단 편집). content/N교시_해설.md를 읽는다
-python tools/build_final.py out                                              # 원본 문제 합본 + 정답표 + 정답 및 해설을 한 번에(한글 필요)
+python tools/build_final.py out                                              # 합본 3개 + 교시별/<교시>{, 정답표, 정답 및 해설}.pdf (한글 필요)
 python tools/build_final.py out --reuse                                      # 이미 변환한 시험지 PDF를 재사용
 ```
 해설 파일(`content/N교시_해설.md`)은 `## 1. [출제의도] …`로 시작하고 바로 아래 줄에 `@answer 3`을 적는다(문항 md와 번호·정답이 다르거나 해설이 없으면 빌드가 중단된다). 예시 PDF를 실측한 지면·글꼴·정답표 규격은 [해설 양식](docs/explanation-format.md)을 따른다. 본문은 문단으로 쓰며 `<b> <i> <sub> <sup>`와 유니코드 기호를 쓸 수 있다.
+
+해설의 **단순 사칙연산은 일반 본문**으로 쓰고, 분수·첨자·근호·합 기호·변수식은 LaTeX로 조판한다. 비교나 경우 분류에는 표를 쓴다. 필요하면 문제에 사용한 기존 삽화·도식도 재사용해 풀이를 설명한다. 해설 빌더는 `$…$`, 별도 문단의 `$$…$$`, Markdown 표와 `![설명](assets/illust/파일.png)`를 지원한다. 지원 범위·의존성·검증 방법은 [해설의 수식·표·삽화](docs/explanation-format.md#수식표삽화-활용)를 따른다. 표는 원본처럼 얇은 선·흰 바탕·본문 크기 글꼴을 쓰며, 짧은 머리글은 실제 글폭으로 한 줄을 확보한다. 수식은 일반 굵기로 쓰고 분자·분모가 지나치게 작아지지 않도록 한다. 현재 프리셋은 분자·분모도9pt로 조판하며, 필요한 줄/셀만 높이를 늘린다. 문제 본문 HWPX의 수식 지원과 해설 PDF의 지원은 별개다.
 
 ## 문항 Markdown 문법
 ```markdown
