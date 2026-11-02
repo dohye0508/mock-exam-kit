@@ -9,7 +9,9 @@ import glob, os, subprocess, sys
 import pymupdf as fitz
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
+from examkit.parse_md import parse_front_matter
 
 
 def main():
@@ -17,8 +19,8 @@ def main():
     reuse = "--reuse" in args
     no_cover = "--no-cover" in args
     args = [a for a in args if a not in ("--reuse", "--no-cover")]
-    out = args[0]
-    mds = args[1:] or sorted(glob.glob(os.path.join(ROOT, "content", "[0-9]교시.md")))
+    out = os.path.abspath(args[0])
+    mds = [os.path.abspath(md) for md in (args[1:] or sorted(glob.glob(os.path.join(ROOT, "content", "[0-9]교시.md"))))]
     os.makedirs(out, exist_ok=True)
     # 한 번에 끝나도록 문항 검사부터 같은 명령 안에서 한다(실패하면 여기서 멈춤)
     subprocess.run([sys.executable, "-m", "examkit", "check", *mds], cwd=ROOT, check=True)
@@ -26,11 +28,15 @@ def main():
     for md in mds:
         n = os.path.basename(md)[0]
         d = os.path.join(out, "_build", n)
-        found = glob.glob(os.path.join(d, "*.pdf"))
-        if not (reuse and found):
+        with open(md, encoding="utf-8") as source:
+            meta, _ = parse_front_matter(source.read())
+        title = meta.get("title", os.path.splitext(os.path.basename(md))[0])
+        pdf = os.path.join(d, title + ".pdf")
+        if not (reuse and os.path.isfile(pdf)):
             subprocess.run([sys.executable, "-m", "examkit", "build", md, "-o", d], cwd=ROOT, check=True)
-            found = glob.glob(os.path.join(d, "*.pdf"))
-        pdfs.append(found[0])
+        if not os.path.isfile(pdf):
+            raise FileNotFoundError("본문 PDF가 생성되지 않았습니다: %s" % pdf)
+        pdfs.append(pdf)
     covers = None
     if no_cover:
         book = fitz.open()

@@ -2,8 +2,11 @@
   python tools/answer_key.py out.pdf content/1교시.md content/2교시.md ...
 제목의 연도·시험 이름·영역은 md 머리(year, exam, area, subject)에서 읽는다.
 """
-import re, sys
+import os, sys
 import pymupdf as fitz
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from examkit.parse_md import parse, check
 
 FONT = "C:/Windows/Fonts/batang.ttc"     # 평가원 정답표처럼 바탕체
 CIRC = "①②③④⑤"
@@ -11,12 +14,11 @@ CIRC = "①②③④⑤"
 
 def meta_and_rows(path):
     s = open(path, encoding="utf8").read()
-    meta = dict(re.findall(r"^(\w+):\s*(.+)$", s.split("\n---", 1)[0], re.M))
-    rows = []
-    for q in re.split(r"(?m)^(?=## \d+\.)", s)[1:]:
-        head = q.split("\n", 1)[0]
-        ans = int(re.search(r"^@answer (\d)", q, re.M).group(1))
-        rows.append((int(re.match(r"## (\d+)\.", q).group(1)), CIRC[ans - 1], 3 if "[3점]" in head else 2))
+    meta, questions = parse(s)
+    problems = check(meta, questions)
+    if problems:
+        raise ValueError("%s: %s" % (path, "; ".join(problems)))
+    rows = [(q["n"], CIRC[q["answer"] - 1], 3 if q["three"] else 2) for q in questions]
     return meta, sorted(rows)
 
 

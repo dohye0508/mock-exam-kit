@@ -62,11 +62,13 @@ def main(argv=None):
             print("%s: %s" % (name, "OK" if not probs else "; ".join(probs)))
             rc |= bool(probs)
             continue
+        if probs:
+            print("[오류] %s: %s" % (name, "; ".join(probs)))
+            rc = 1
+            continue
         if a.cmd == "answers":
             print("wrote", write_answers(meta, qs, name, a.out))
             continue
-        if probs:
-            print("[경고] %s: %s" % (name, "; ".join(probs)))
         os.makedirs(a.out, exist_ok=True)
         title = meta.get("title", name)
         if a.only:

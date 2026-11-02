@@ -145,6 +145,8 @@ def review(files, out_dir, template="kice-sci", reuse=False, overlay=False):
     for f in files:
         meta, qs = parse(open(f, encoding="utf-8").read())
         problems = check(meta, qs)
+        if problems:
+            raise ValueError("%s: %s" % (f, "; ".join(problems)))
         missing = [str(q["n"]) for q in qs if q.get("status") not in REVIEW_COLORS]
         if missing:
             problems.append("@status 없음: " + ", ".join(missing))

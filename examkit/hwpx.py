@@ -255,6 +255,11 @@ def databox(lines, width=COL_W):
     pp, st, cp = STYLE["box_para"]
     paras = []
     for ln in lines:
+        if ln.startswith(("@center ", "@c ")):
+            cpp, cst, _ = STYLE["center"]
+            cp_heading = STYLE["box_heading_char"] if ln.startswith("@center ") else cp
+            paras.append(text_para(ln.split(" ", 1)[1], cpp, cst, cp_heading))
+            continue
         c = STYLE["box_heading_char"] if ln.startswith("[") else cp
         paras.append(text_para(ln, pp, st, c))
     h = int(sum(_box_lines(l, width) for l in lines) * LINE_H * 0.85) + 700   # 칸은 글에 맞춰 늘어나므로 적게 어림
@@ -288,12 +293,13 @@ def choices10(opts, mark=None):
     """한 줄 선택지 표(① ㄱ ② ㄴ …). opts에 $수식$ 가능."""
     pp, st, cp = STYLE["choice_line"]
     marks = "①②③④⑤"
+    h = 2600 if any(r"\frac" in o for o in opts) else 1431
     cells = []
     for i in range(5):
         c = _cp(i, cp, mark)
-        cells.append(tc(text_para(marks[i], pp, st, c), 2 * i, 0, 1391, 1431, BF["choices"], (0, 0, 0, 0)))
-        cells.append(tc(text_para(opts[i], pp, st, c), 2 * i + 1, 0, 4787, 1431, BF["choices"], (184, 0, 0, 0), has_margin=1))
-    return tbl_para(tbl([cells], 1, 10, 30890, 1431, BF["box_tbl"], protect=1), "93", "69", "109")
+        cells.append(tc(text_para(marks[i], pp, st, c), 2 * i, 0, 1391, h, BF["choices"], (0, 0, 0, 0)))
+        cells.append(tc(text_para(opts[i], pp, st, c), 2 * i + 1, 0, 4787, h, BF["choices"], (184, 0, 0, 0), has_margin=1))
+    return tbl_para(tbl([cells], 1, 10, 30890, h, BF["box_tbl"], protect=1), "93", "69", "109")
 
 
 def grid(headers, rows, width=COL_W, mark=None):
@@ -532,5 +538,5 @@ def keep_together(inner_xml, pb=0, cb=0, width=31692):
 def dialog(speakers_lines, width=COL_W):
     """사탐형 대화 자료: [(화자, 발언), ...] → 2열 표(테두리 없음) 안에 넣은 자료 상자."""
     pp, st, cp = STYLE["box_para"]
-    lines = ["%s: %s" % (s, t) for s, t in speakers_lines]
+    lines = ["%s: %s" % (s, t) if s else "@c " + t for s, t in speakers_lines]
     return databox(lines, width)

@@ -55,6 +55,10 @@ python -m examkit build content/example.md --no-convert   # 한글 없이 hwpx�
 ```
 문항 작성 원칙은 [출제 노하우](docs/authoring-style.md)와 [prompt.md](prompt.md)(유형 배합·배점·평가원 어투)를 읽는다. 문법 예시는 [content/example.md](content/example.md).
 
+문항 번호·정답 범위·선택지 구조 검사에 실패하면 본문·정답표·검토본 출력을 중단한다. 한글 변환은 요청한 형식 모두를 임시 파일에 저장한 뒤 기존 결과를 교체한다. 저장 실패 시 기존 결과는 보존되며 명령은 실패한다.
+
+회귀 테스트는 `python -m unittest discover -s tests -v`로 실행한다. 실제 HWPX 조립과 PDF 합본 선택을 검사하며, 한글 COM 저장은 모의 객체로 확인한다. 실제 한글 렌더링·인쇄 검수는 별도다.
+
 ### 교시별 표지
 
 사용자가 제공한 HWP 원본을 그대로 사용하는 [표지 양식과 사용법](docs/cover-format.md)이 있다. 원본은 `templates/covers/`, 빌더는 `tools/build_cover.py`다. 글꼴이나 상자를 별도로 흉내 내지 않는다.
