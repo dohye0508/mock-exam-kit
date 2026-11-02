@@ -130,6 +130,7 @@ section .wrap > * { min-width: 0; }
 .copy { color: #EEECE3 !important; position: absolute; top: 10px; right: 10px; font: 500 14px var(--body); background: transparent; color: #EEECE3; border: 1px solid rgba(238,236,227,.4); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
 .note { font-size: 16px; color: var(--ink-soft); }
 .note strong { color: var(--ink); }
+.is-locked { opacity: .52; cursor: not-allowed; }
 
 .syntax-tbl { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 16px; }
@@ -300,23 +301,62 @@ const PAPERS = [
   { n: 4, name: "인곽 생활", file: "papers/period4.pdf", save: "4교시 인곽 생활.pdf", img: "img/body4.jpg", ans: "papers/period4_answers.pdf", exp: "papers/period4_explanation.pdf", size: "533KB", pages: "표지 1쪽 + 4쪽",
     desc: "개교 초기·사건·학생회·간담회" },
 ];
+const RELEASES = {
+  1: 20261102,
+  2: 20261103,
+  3: 20261104,
+  4: 20261105,
+  answers: 20261109,
+};
 const EXTRAS = [
   { id: "full", title: "문제지", file: "papers/full.pdf", save: "인천과학고등학교 모의고사 문제지.pdf", size: "1817KB", desc: "1~4교시 합본, 표지 포함 24쪽" },
   { id: "answers", title: "정답표", file: "papers/answers.pdf", save: "정답표.pdf", size: "91KB", desc: "교시마다 한 쪽, 번호·정답·배점" },
   { id: "explain", title: "정답 및 해설", file: "papers/explanation.pdf", save: "정답 및 해설.pdf", size: "1235KB", desc: "출제 의도와 풀이, 9쪽" },
 ];
 
+function koreaDateKey() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(new Date());
+  const value = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return Number(`${value.year}${value.month}${value.day}`);
+}
+function releaseLabel(key) {
+  const value = RELEASES[key];
+  const month = Math.floor(value / 100) % 100;
+  const day = value % 100;
+  return `${month}월 ${day}일`;
+}
+function canDownload(kind, period) {
+  const today = koreaDateKey();
+  if (kind === "paper") return today >= RELEASES[period];
+  if (kind === "full-paper") return today >= RELEASES[4];
+  return today >= RELEASES.answers;
+}
+function lockedMessage(kind, period) {
+  if (kind === "paper") return `${period}교시 원본 문제는 ${releaseLabel(period)}에 공개됩니다.`;
+  if (kind === "full-paper") return `1~4교시 합본 문제지는 ${releaseLabel(4)}에 공개됩니다.`;
+  return `정답표와 정답 및 해설은 ${releaseLabel("answers")}에 모두 공개됩니다.`;
+}
+function guardDownload(element) {
+  const kind = element.dataset.kind;
+  const period = Number(element.dataset.period || 0);
+  if (canDownload(kind, period)) return true;
+  alert(lockedMessage(kind, period));
+  return false;
+}
+
 const grid = document.getElementById("papers-grid");
 grid.innerHTML = PAPERS.map(p => `
   <article class="paper">
-    <a class="shot" href="${p.file}" target="_blank" rel="noopener" aria-label="${p.n}교시 첫 문제 쪽 크게 보기"><img src="${p.img}" alt="${p.n}교시 ${p.name} 첫 문제 쪽" loading="lazy"></a>
+    <a class="shot" href="${p.file}" target="_blank" rel="noopener" data-kind="paper" data-period="${p.n}" aria-label="${p.n}교시 첫 문제 쪽 크게 보기"><img src="${p.img}" alt="${p.n}교시 ${p.name} 첫 문제 쪽" loading="lazy"></a>
     <div class="body">
       <h3>${p.n}교시 · ${p.name}</h3>
     </div>
     <div class="side">
-      <button class="btn" type="button" data-file="${p.file}" data-save="${p.save}" data-st="st-${p.n}">문제지 <span style="font-weight:400;opacity:.7">${p.size}</span></button>
-      <button class="btn" type="button" data-file="${p.ans}" data-save="${p.n}교시 ${p.name} 정답표.pdf" data-st="st-${p.n}">정답표</button>
-      <button class="btn" type="button" data-file="${p.exp}" data-save="${p.n}교시 ${p.name} 정답 및 해설.pdf" data-st="st-${p.n}">정답 및 해설</button>
+      <button class="btn" type="button" data-file="${p.file}" data-save="${p.save}" data-st="st-${p.n}" data-kind="paper" data-period="${p.n}">원본 문제 <span style="font-weight:400;opacity:.7">${p.size}</span></button>
+      <button class="btn" type="button" data-file="${p.ans}" data-save="${p.n}교시 ${p.name} 정답표.pdf" data-st="st-${p.n}" data-kind="answer" data-period="${p.n}">정답표</button>
+      <button class="btn" type="button" data-file="${p.exp}" data-save="${p.n}교시 ${p.name} 정답 및 해설.pdf" data-st="st-${p.n}" data-kind="explanation" data-period="${p.n}">정답 및 해설</button>
       <div class="status" id="st-${p.n}" aria-live="polite"></div>
     </div>
   </article>`).join("");
@@ -326,10 +366,24 @@ extras.innerHTML = EXTRAS.map(x => `
     <h3>${x.title}</h3>
     <p>${x.desc}</p>
     <div class="side" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <button class="btn" type="button" data-file="${x.file}" data-save="${x.save}" data-st="st-${x.id}">PDF 받기 <span style="font-weight:400;opacity:.7">${x.size}</span></button>
+      <button class="btn" type="button" data-file="${x.file}" data-save="${x.save}" data-st="st-${x.id}" data-kind="${x.id === "full" ? "full-paper" : x.id}">PDF 받기 <span style="font-weight:400;opacity:.7">${x.size}</span></button>
       <div class="status" id="st-${x.id}" aria-live="polite"></div>
     </div>
   </article>`).join("");
+
+document.querySelectorAll("[data-kind]").forEach(element => {
+  const kind = element.dataset.kind;
+  const period = Number(element.dataset.period || 0);
+  const locked = !canDownload(kind, period);
+  element.classList.toggle("is-locked", locked);
+  element.setAttribute("aria-disabled", String(locked));
+  if (locked) element.title = lockedMessage(kind, period);
+});
+const allButton = document.getElementById("dl-all");
+const allLocked = !canDownload("all", 0);
+allButton.classList.toggle("is-locked", allLocked);
+allButton.setAttribute("aria-disabled", String(allLocked));
+if (allLocked) allButton.title = `전체 ZIP은 ${releaseLabel("answers")}에 공개됩니다.`;
 
 function show(view) {
   const dl = view === "download";
@@ -378,11 +432,21 @@ async function saveFile(file, filename, st) {
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-file]");
-  if (!b || !downloads) return;
+  if (!b) return;
+  if (!guardDownload(b) || !downloads) return;
   saveFile(b.dataset.file, b.dataset.save, document.getElementById(b.dataset.st));
+});
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("a.shot[data-kind]");
+  if (!a || guardDownload(a)) return;
+  e.preventDefault();
 });
 document.querySelector("#pick .menu").addEventListener("click", (e) => { const b = e.target.closest("button[data-set]"); if (!b) return; document.getElementById("pick-label").textContent = b.firstChild.textContent.trim(); document.getElementById("pick").open = false; document.getElementById("set-" + b.dataset.set).hidden = false; });
 document.getElementById("dl-all").addEventListener("click", async () => {
+  if (!canDownload("all", 0)) {
+    alert(`전체 ZIP은 정답 및 해설과 함께 ${releaseLabel("answers")}에 공개됩니다.`);
+    return;
+  }
   if (!downloads) return;
   const st = document.getElementById("st-all");
   st.textContent = "파일을 묶는 중…";
