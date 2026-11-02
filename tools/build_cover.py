@@ -74,6 +74,7 @@ def make_hwpx(md, output):
             '(가 형)': f"({meta['subject']})",
             '자신이 선택한 유형(‘가’ 형/‘나’ 형)의 문제지인지 확인하시오.':
                 '해당 교시와 과목의 문제지인지 확인하시오.',
+            '싸우는 천사는 지금 악마가 된다': meta.get('handwriting', DEFAULT_HANDWRITING),
             '답안지의 해당란에 성명과 수험번호를 쓰고, 또 수험번호, 문형       (홀수/짝수), 답을 정확히 표시하시오.':
                 '답안지의 해당란에 성명과 수험번호를 쓰고, 수험번호와\n   답을 정확히 표시하시오.',
             '단답형 답의 숫자에 ‘0’이 포함되면 그 ‘0’도 답란에 반드시 표시하시오.':
@@ -82,17 +83,18 @@ def make_hwpx(md, output):
                 '   배점은 2점 또는 3점입니다.',
             '한국교육과정평가원': meta.get('issuer', meta['exam']),
         }
+        # 필적 확인란 회색 상자는 글자처럼 놓인 개체라 문단 정렬을 따른다. 가운데 정렬 문단(paraPr 16)으로 바꾸고 앞쪽 공백을 지운다.
+        hand = [t for t in section.findall('.//hp:t', NS) if _text(t) == '싸우는 천사는 지금 악마가 된다']
+        if len(hand) != 1:
+            raise ValueError('Cannot find handwriting text in original template')
+        rect = next(a for a in hand[0].iterancestors() if a.tag == f'{{{HP}}}rect')
+        para = next(a for a in rect.iterancestors() if a.tag == f'{{{HP}}}p')
+        para.set('paraPrIDRef', '16')
+        for t in para.findall('./hp:run/hp:t', NS):
+            if _text(t) and not _text(t).strip():
+                t.text = ''
         for old, new in replacements.items():
             _replace(section, old, new)
-        handwriting = _replace(section, '싸우는 천사는 지금 악마가 된다',
-                               meta.get('handwriting', DEFAULT_HANDWRITING))
-        box = next(handwriting.iterancestors(f'{{{HP}}}rect'))
-        # 글자처럼 배치된 상자도 내부 문구와 같은 중앙 정렬 문단 모양을 쓴다.
-        box_paragraph = box.getparent().getparent()
-        box_paragraph.set('paraPrIDRef', handwriting.getparent().getparent().get('paraPrIDRef'))
-        for text in box_paragraph.findall('./hp:run/hp:t', NS):
-            if not _text(text).strip():
-                text.text = None
         # Cached line positions refer to old text. Hancom recomputes them on open.
         for cache in section.findall('.//hp:linesegarray', NS):
             cache.getparent().remove(cache)

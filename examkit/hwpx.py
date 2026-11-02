@@ -255,10 +255,10 @@ def databox(lines, width=COL_W):
     pp, st, cp = STYLE["box_para"]
     paras = []
     for ln in lines:
-        if ln.startswith(("@center ", "@c ")):
+        if ln.startswith(("@center ", "@c ")):   # 가운데 정렬 줄: @center는 제목 서체(시 제목 등), @c는 본문 서체((중략) 등)
             cpp, cst, _ = STYLE["center"]
-            cp_heading = STYLE["box_heading_char"] if ln.startswith("@center ") else cp
-            paras.append(text_para(ln.split(" ", 1)[1], cpp, cst, cp_heading))
+            head = ln.startswith("@center ")
+            paras.append(text_para(ln.split(" ", 1)[1], cpp, cst, STYLE["box_heading_char"] if head else cp))
             continue
         c = STYLE["box_heading_char"] if ln.startswith("[") else cp
         paras.append(text_para(ln, pp, st, c))
@@ -293,7 +293,7 @@ def choices10(opts, mark=None):
     """한 줄 선택지 표(① ㄱ ② ㄴ …). opts에 $수식$ 가능."""
     pp, st, cp = STYLE["choice_line"]
     marks = "①②③④⑤"
-    h = 2600 if any(r"\frac" in o for o in opts) else 1431
+    h = 2600 if any(r"\frac" in o for o in opts) else 1431   # 분수는 두 층이라 칸을 높인다
     cells = []
     for i in range(5):
         c = _cp(i, cp, mark)

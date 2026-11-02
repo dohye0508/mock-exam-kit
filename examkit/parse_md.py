@@ -134,6 +134,7 @@ def _add_block(q, kind, kv, block):
             headers, rows = rows[0], rows[1:]
         q["grid"] = (headers, rows)
     elif kind == "dialog":
+        # "화자: 발언" 줄과, 화자 없는 줄((중략) 등은 가운데 정렬)
         pairs = [tuple(x.strip() for x in b.split(":", 1)) if ":" in b else ("", b.strip()) for b in block if b.strip()]
         q["blocks"].append(("dialog", pairs))
     else:
