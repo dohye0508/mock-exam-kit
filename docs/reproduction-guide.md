@@ -66,9 +66,9 @@ python -c "import lxml, matplotlib, pymupdf, PIL, win32com.client; print('import
 ## 4. 참고 기출 → 삽화 → 글 배치
 
 1. [시각 자료 가이드](visual-reference-guide.md)에서 형식을 고른다. 사람 대화뿐 아니라 공지·기사·표·메신저·사물·유물·실험 장치 등을 사용한다.
-2. 문항 JPG는 `assets/reference/tongsarang/<과목>/<학년도>/`, 과탐·직탐 PDF는 `assets/reference/pdf/`, PDF 목록은 `assets/reference/catalog/archive.jsonl`, 수집 범위는 `coverage.json`이다. 영어·기술가정은 수집 대상에서 제외했다.
-3. LFS 포인터를 이미지로 착각하지 않는다. [선택 다운로드](visual-reference-guide.md) 절차로 필요한 원본만 받는다. 자료 목록은 출제 조건의 진실성을 보증하는 자료가 아니다.
-4. 자동 후보 선별은 보조다. 예: `python tools/find_illust.py assets/reference/tongsarang/사회문화/2025 -n 32 -o output/reference-sheet`. 썸네일을 직접 보고 비슷한 그림체 2~3장을 고른다.
+2. 기출·모의고사 문제지는 사용자가 구해 로컬 `assets/reference/`에 둔다(git 제외). 없으면 사용자에게 몇 개 받아 달라고 한다.
+3. 참고 자료는 형식·구도를 배우는 용도다. 자료 내용이 출제 조건의 진실성을 보증하지 않는다.
+4. 자동 후보 선별은 보조다. 예: `python tools/find_illust.py assets/reference/<폴더> -n 32 -o output/reference-sheet`. 썸네일을 직접 보고 비슷한 그림체 2~3장을 고른다.
 5. 새 요청은 [삽화 요청서](illustration-request.md) 양식대로 `assets/illust/handoffN/`에 `PROMPT.md`·`<id>/layout.png`·`<id>/style_k.png`로 쓰고 zip으로 사용자에게 넘긴다. 묶음은 저장소에 올리지 않는다. 인곽의 과거 묶음(handoff5~7)은 `ISHS_Wiki/인곽생활_모의고사/handoffN_그림요청.zip`에 있다.
 6. 현재 프로젝트는 API 연결 없이 ChatGPT에서 글자 없는 장면/틀을 생성한다. 파일명은 `assets/illust/<id>.png`. 그래프·지도·조직도처럼 수치·관계가 정답을 좌우하면 코드·편집 가능한 도형으로 만든다. 기존 코드 그림은 `assets/illust/sources/`를 본다.
 7. 완성 PNG를 실제로 열고 확인한다. 인물/좌석/상자 수, 책상과 의자의 비율, 서로 바라보는 방향, 포스터 가로세로비 등이 요청과 맞아야 한다. 자동 생성은 같은 요청만으로 픽셀 단위 재현을 보장하지 않으므로 승인된 PNG를 원본 자산으로 보존한다.
