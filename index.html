@@ -75,7 +75,7 @@ header.top .wrap { display: flex; justify-content: space-between; align-items: c
 .paper .body p { font-size: 15.5px; color: var(--ink-soft); }
 .paper .side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .paper .side .btn { padding: 10px 16px; font-size: 15px; }
-.paper.is-future > * { filter: blur(6px); transition: filter .18s ease; }
+.paper.is-future .shot { filter: blur(6px); transition: filter .18s ease; }
 .extras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-bottom: 40px; }
 @media (max-width: 760px) { .extras { grid-template-columns: minmax(0, 1fr); } }
 .pick { margin-bottom: 28px; }
@@ -303,12 +303,12 @@ const PAPERS = [
     desc: "개교 초기·사건·학생회·간담회" },
 ];
 const RELEASES = {
-  1: 20261103,
-  2: 20261104,
-  3: 20261105,
-  4: 20261106,
-  bundle: 20261107,
-  answers: 20261107,
+  1: "2026-11-03T09:00:00+09:00",
+  2: "2026-11-04T09:00:00+09:00",
+  3: "2026-11-05T09:00:00+09:00",
+  4: "2026-11-06T09:00:00+09:00",
+  bundle: "2026-11-07T09:00:00+09:00",
+  answers: "2026-11-07T09:00:00+09:00",
 };
 const EXTRAS = [
   { id: "full", title: "문제지", file: "papers/full.pdf", save: "인천과학고등학교 모의고사 문제지.pdf", size: "1817KB", desc: "1~4교시 합본, 표지 포함 24쪽" },
@@ -316,24 +316,15 @@ const EXTRAS = [
   { id: "explain", title: "정답 및 해설", file: "papers/explanation.pdf", save: "정답 및 해설.pdf", size: "1235KB", desc: "출제 의도와 풀이, 9쪽" },
 ];
 
-function koreaDateKey() {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit"
-  }).formatToParts(new Date());
-  const value = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
-  return Number(`${value.year}${value.month}${value.day}`);
-}
 function releaseLabel(key) {
-  const value = RELEASES[key];
-  const month = Math.floor(value / 100) % 100;
-  const day = value % 100;
-  return `${month}월 ${day}일`;
+  const [, month, day] = RELEASES[key].match(/^\d{4}-(\d{2})-(\d{2})/);
+  return `${Number(month)}월 ${Number(day)}일 오전 9시`;
 }
 function canDownload(kind, period) {
-  const today = koreaDateKey();
-  if (kind === "paper") return today >= RELEASES[period];
-  if (kind === "full-paper") return today >= RELEASES.bundle;
-  return today >= RELEASES.answers;
+  const now = Date.now();
+  if (kind === "paper") return now >= Date.parse(RELEASES[period]);
+  if (kind === "full-paper") return now >= Date.parse(RELEASES.bundle);
+  return now >= Date.parse(RELEASES.answers);
 }
 function lockedMessage(kind, period) {
   if (kind === "paper") return `${period}교시 원본 문제는 ${releaseLabel(period)}에 공개됩니다.`;
