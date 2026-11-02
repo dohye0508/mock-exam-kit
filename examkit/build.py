@@ -86,7 +86,7 @@ def build_question(q, img_sink, review_ids=None):
             parts.append(hwpx.dialog(payload))
         elif kind == "text":
             parts.append(hwpx.q_line(payload))
-    ask = q["ask"] + (" [3점]" if q["three"] else "")
+    ask = q["ask"].rstrip() + ("\u00a0[3점]" if q["three"] else "")
     parts.append(hwpx.q_line(ask))
     if "bogi" in q:
         parts.append(hwpx.bogi(q["bogi"]))

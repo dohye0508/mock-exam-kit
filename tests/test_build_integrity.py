@@ -4,6 +4,7 @@ import importlib.util
 import io
 import os
 from pathlib import Path
+import runpy
 import sys
 import tempfile
 import types
@@ -28,6 +29,7 @@ def tool(name):
 
 answer_key = tool('answer_key')
 build_final = tool('build_final')
+build_cover = tool('build_cover')
 
 
 def question(answer=1, extra='', choices=None):
@@ -87,6 +89,55 @@ class InputTests(unittest.TestCase):
 
 
 class HwpxTests(unittest.TestCase):
+    def test_score_stays_with_prompt_ending(self):
+        _, questions = parse_md.parse(question())
+        q = questions[0]
+        q['ask'] = '옳은 것은?  '
+        for three in (False, True):
+            q['three'] = three
+            xml = build.build_question(q, None)
+            wrapped = etree.fromstring(('<root xmlns:hp="urn:hp">' + xml + '</root>').encode())
+            text = ''.join(wrapped.itertext())
+            self.assertEqual('[3점]' in text, three)
+            if three:
+                self.assertIn('것은?\u00a0[3점]', text)
+                self.assertNotIn('것은? \u00a0', text)
+
+    def test_cover_centers_box_without_leading_padding(self):
+        ns = dict(build_cover.NS, hh='http://www.hancom.co.kr/hwpml/2011/head')
+        with tempfile.TemporaryDirectory() as folder:
+            for phrase in (None, '함께 배우며 자란다'):
+                source = Path(folder) / 'cover.md'
+                text = question()
+                if phrase:
+                    text = text.replace('title: current', 'title: current\nhandwriting: ' + phrase)
+                source.write_text(text, encoding='utf-8')
+                output = build_cover.make_hwpx(source, Path(folder) / 'cover.hwpx')
+                with ZipFile(output) as archive:
+                    section = etree.fromstring(archive.read('Contents/section0.xml'))
+                    header = etree.fromstring(archive.read('Contents/header.xml'))
+                    target = phrase or build_cover.DEFAULT_HANDWRITING
+                    t = next(t for t in section.findall('.//hp:t', ns) if ''.join(t.itertext()) == target)
+                    box = next(t.iterancestors(f'{{{build_cover.HP}}}rect'))
+                    paragraph = box.getparent().getparent()
+                    style = next(p for p in header.findall('.//hh:paraPr', ns)
+                                 if p.get('id') == paragraph.get('paraPrIDRef'))
+                    self.assertEqual(style.find('hh:align', ns).get('horizontal'), 'CENTER')
+                    self.assertEqual(''.join(paragraph.xpath('./hp:run/hp:t/text()', namespaces=ns)), '')
+                    self.assertEqual(box.find('hp:sz', ns).get('width'), '28826')
+                    self.assertEqual(box.find('hp:pos', ns).get('treatAsChar'), '1')
+
+    def test_widows_reports_isolated_score(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'score.pdf'
+            with fitz.open() as doc:
+                doc.new_page().insert_text((72, 72), 'A long question ending here?\n[3점]', fontname='korea')
+                doc.save(path)
+            output = io.StringIO()
+            with patch.object(sys, 'argv', ['widows.py', str(path)]), contextlib.redirect_stdout(output):
+                runpy.run_path(str(ROOT / 'tools/widows.py'), run_name='__main__')
+            self.assertIn('[3점]', output.getvalue())
+
     def test_dialog_keeps_unattributed_lines(self):
         _, questions = parse_md.parse(question(extra='::: dialog\n갑: 앞\n(중략)\n을: 뒤\n:::'))
         pairs = questions[0]['blocks'][0][1]

@@ -74,7 +74,6 @@ def make_hwpx(md, output):
             '(가 형)': f"({meta['subject']})",
             '자신이 선택한 유형(‘가’ 형/‘나’ 형)의 문제지인지 확인하시오.':
                 '해당 교시와 과목의 문제지인지 확인하시오.',
-            '싸우는 천사는 지금 악마가 된다': meta.get('handwriting', DEFAULT_HANDWRITING),
             '답안지의 해당란에 성명과 수험번호를 쓰고, 또 수험번호, 문형       (홀수/짝수), 답을 정확히 표시하시오.':
                 '답안지의 해당란에 성명과 수험번호를 쓰고, 수험번호와\n   답을 정확히 표시하시오.',
             '단답형 답의 숫자에 ‘0’이 포함되면 그 ‘0’도 답란에 반드시 표시하시오.':
@@ -85,6 +84,15 @@ def make_hwpx(md, output):
         }
         for old, new in replacements.items():
             _replace(section, old, new)
+        handwriting = _replace(section, '싸우는 천사는 지금 악마가 된다',
+                               meta.get('handwriting', DEFAULT_HANDWRITING))
+        box = next(handwriting.iterancestors(f'{{{HP}}}rect'))
+        # 글자처럼 배치된 상자도 내부 문구와 같은 중앙 정렬 문단 모양을 쓴다.
+        box_paragraph = box.getparent().getparent()
+        box_paragraph.set('paraPrIDRef', handwriting.getparent().getparent().get('paraPrIDRef'))
+        for text in box_paragraph.findall('./hp:run/hp:t', NS):
+            if not _text(text).strip():
+                text.text = None
         # Cached line positions refer to old text. Hancom recomputes them on open.
         for cache in section.findall('.//hp:linesegarray', NS):
             cache.getparent().remove(cache)
