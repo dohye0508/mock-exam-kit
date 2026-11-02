@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """4교시 12번 녹물 시료 X에 Y 또는 Z를 섞을 때(부피 합 40 mL) X의 부피에 따른 전체 이온 수.
 흑백, 600dpi, 흰 배경. 지면 실제 크기(mm)로 그리므로 글자 크기(pt)가 그대로 지면 크기다.
-(가) 실선: X + Z(AgNO3)  (0, 1.6N) -> (10, N) -> (40, 4N)
+(가) 실선: X + Z(AgNO3)  (0, 1.2N) -> (10, N) -> (40, 4N)
 (나) 점선: X + Y(NaOH)   (0, 4N)   -> (25, 3N) -> (40, 4N)
 (문항에서는 (가), (나)가 어느 쪽인지 알려 주지 않는다. 검산: new_chem/b_verify.py)
 python hist_q12_ions.py <출력 png>"""
@@ -28,7 +28,7 @@ X0, PERV = 9.0, 1.45                     # V=0 가로 위치, 1 mL 길이(mm)
 Y0, PERN = 6.0, 8.6                     # 0 세로 위치, N 하나 높이(mm)
 VMAX, NMAX = 40, 4
 
-GA = [(0, 1.6), (10, 1), (40, 4)]       # (가)
+GA = [(0, 1.2), (10, 1), (40, 4)]       # (가)
 NA = [(0, 4), (25, 3), (40, 4)]         # (나)
 
 
@@ -78,7 +78,7 @@ ax.plot([px(v) for v, _ in NA], [py(n) for _, n in NA], color="black", lw=LW,
         ls=(0, (3.2, 1.8)), dash_joinstyle="miter", dash_capstyle="butt", zorder=4)
 
 # 곡선 이름
-ax.text(px(3.2), py(1.38) + 1.6, "(가)", ha="left", va="bottom", fontsize=FS, zorder=5)
+ax.text(px(3.2), py(1.3) + 1.6, "(가)", ha="left", va="bottom", fontsize=FS, zorder=5)
 ax.text(px(9.0), py(3.29), "(나)", ha="center", va="center", fontsize=FS, zorder=5)
 
 # 축 이름: 세로축은 위 왼쪽, 가로축은 오른쪽 끝 아래
