@@ -83,6 +83,16 @@ def make_hwpx(md, output):
                 '   배점은 2점 또는 3점입니다.',
             '한국교육과정평가원': meta.get('issuer', meta['exam']),
         }
+        # 필적 확인란 회색 상자는 글자처럼 놓인 개체라 문단 정렬을 따른다. 가운데 정렬 문단(paraPr 16)으로 바꾸고 앞쪽 공백을 지운다.
+        hand = [t for t in section.findall('.//hp:t', NS) if _text(t) == '싸우는 천사는 지금 악마가 된다']
+        if len(hand) != 1:
+            raise ValueError('Cannot find handwriting text in original template')
+        rect = next(a for a in hand[0].iterancestors() if a.tag == f'{{{HP}}}rect')
+        para = next(a for a in rect.iterancestors() if a.tag == f'{{{HP}}}p')
+        para.set('paraPrIDRef', '16')
+        for t in para.findall('./hp:run/hp:t', NS):
+            if _text(t) and not _text(t).strip():
+                t.text = ''
         for old, new in replacements.items():
             _replace(section, old, new)
         # Cached line positions refer to old text. Hancom recomputes them on open.
