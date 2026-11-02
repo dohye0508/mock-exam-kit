@@ -9,8 +9,6 @@ output/
 *.hwp
 *.hwpx
 *.pdf
-!assets/reference/pdf/과학탐구/**/*.pdf
-!assets/reference/pdf/직업탐구/**/*.pdf
 !templates/**/*.hwpx
 !templates/covers/*.hwp
 !templates/covers/*-source.pdf
@@ -20,3 +18,5 @@ __pycache__/
 build/
 !ishs/pdf/**/*.pdf
 !site/papers/*.pdf
+# 참고 기출은 로컬에만 둔다
+assets/reference/

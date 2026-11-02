@@ -157,20 +157,14 @@ skills/science-apparatus/   실험 기구·배치 도식 SVG 스케치 스킬(gi
 templates/covers/    수정하지 않는 원본 표지 HWP/HWPX/PDF
 tools/      build_cover.py(표지), build_key.py(해설), answer_key.py(정답표), build_final.py(합본)
 content/    example.md + 현재 프로젝트의 문항 MD와 해설 MD (추적 여부는 브랜치별 확인)
-assets/reference/tongsarang/   한국사·사탐·통합사회 기출 문항 이미지 (Git LFS)
-assets/reference/pdf/           과탐·직탐 기출 문제지 PDF (Git LFS)
-assets/reference/catalog/       참고 PDF 목록·출처·해시·수집 범위
+assets/reference/   (로컬 전용, git 제외) 사용자가 구한 기출·모의고사 문제지. 참고용
 docs/       재현 절차·서식 수치·삽화 배치·참고 자료 안내
 ishs/       현재 학교 프로젝트 전용 규칙·인수인계 (다른 시험에 자동 적용 금지)
 ```
 
-## 기출 문항 이미지 참고 자료
+## 기출 참고 자료
 
-`assets/reference/tongsarang/<과목>/<학년도>/<원본 파일명>.jpg`에 [통사랑](https://tongsarang.kr/)에서 2026-10-31에 내려받은 문항 이미지 13,985개를 보관한다. 한국사 1,340문항, 통합사회 805문항, 사회탐구 9과목 11,840문항이다. 사이트에 등록된 전체 분량이며 역대 모든 시험을 빠짐없이 포함하지는 않는다.
-
-이미지는 삽화만 잘라낸 파일이 아니라 지문·선택지를 포함한 문항 전체이다. 원본 파일명과 학년도 표기를 유지했다. ZIP, PDF, 검색용 HTML, 정답 목록은 포함하지 않는다. 출제용 `content/` 및 문제지 양식 `templates/`와 분리된 참고 자료이며, 공개 자료라는 사실이 자유로운 수정·재배포 허락을 의미하지 않는다.
-
-사탐·한국사·통합사회 이미지 원본 약 2.90GB와 추가 과학탐구·직업탐구 기출 문제지 고유 PDF 3,159개(4.256GB)를 Git LFS로 관리한다. 과탐·직탐은 [전체 목록](assets/reference/catalog/archive.jsonl)에서 찾고 [PDF 안내](assets/reference/pdf/README.md)에 따라 필요한 파일만 받는다. 새 작업 환경에서 전체 다운로드를 기본으로 하지 않는다. 새로 복제할 때는 `GIT_LFS_SKIP_SMUDGE=1`로 자동 다운로드를 생략하고, 기존 저장소에서는 `git lfs install --local --skip-smudge`를 설정한 뒤 `git lfs pull --include="필요한 원본 경로" --exclude=""`로 선택한 파일만 받는다. 경로가 존재하더라도 작은 텍스트 형태의 LFS 포인터일 수 있다. [과목별 예시와 PowerShell 명령](docs/visual-reference-guide.md)을 참고한다.
+저장소에는 기출 원본을 두지 않는다. 어떤 모의고사든 PDF나 이미지로 구해 로컬 `assets/reference/`에 넣으면(git 제외) AI가 그 문항의 자료 형식, 그림 구도, 선택지 배치를 학습해 새 문항에 반영한다. 출처 표기나 별도 목록은 필요 없다. 자세한 사용법은 [시각 자료 가이드](docs/visual-reference-guide.md).
 
 ## 다른 양식 쓰기
 1. 양식 HWP를 한글에서 HWPX로 저장 → 압축 해제해 `templates/<이름>/` 에 둔다.

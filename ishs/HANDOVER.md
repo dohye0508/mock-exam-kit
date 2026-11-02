@@ -27,7 +27,7 @@
 - 과거 그림 요청 묶음은 저장소에 두지 않는다. handoff5~7(PROMPT.md·layout·style·DELIVERY 포함)은 이 PC의 `C:/Users/User/Downloads/ISHS_Wiki/인곽생활_모의고사/handoffN_그림요청.zip`에 있다. 요청서 양식 자체는 `docs/illustration-request.md`에 적어 두었으므로 새 요청은 그 양식으로 쓴다.
 - 학교 사실의 별도 원문은 현재 PC의 `C:/Users/User/Downloads/raw/`를 이전 작업에서 사용했다. 이 원문은 저장소에 포함된 것으로 가정하지 않는다. 새 사실 검증이 필요하면 파일 존재와 출처를 확인한다.
 - 해설 예시 PDF `2026고1-10월과탐정답해설.pdf`는 사용자 Downloads에 있는 참고 원본이며 저장소에 포함하지 않았다. 재빌드는 실측값·코드·미리보기로 가능하나 원본 재대조에는 그 파일이 필요하다.
-- 기출은 `assets/reference/`에 있으며 대용량은 LFS다. 목록은 `assets/reference/catalog/`. 전 과목의 모든 그림을 육안 검토한 것은 아니다. 과탐·직탐만 추가 수집했고 영어·기술가정은 제외했다.
+- 기출은 저장소에 없다. 로컬 `assets/reference/`에 사용자가 구한 문제지를 두고 참고한다(git 제외).
 
 ## 현재 PC에서 확인한 환경
 

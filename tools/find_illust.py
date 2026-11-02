@@ -1,7 +1,7 @@
 """기출 참고 이미지에서 삽화(인물·장면 그림)가 들어 있을 법한 문항을 골라 썸네일 시트로 만든다.
 
 보조 수단일 뿐이다. 점수가 높아도 지도·사진일 수 있으니 시트를 눈으로 보고 고른다.
-  python tools/find_illust.py assets/reference/tongsarang/생활과윤리 -n 96 -o output/illust_sheets
+  python tools/find_illust.py assets/reference/<폴더> -n 96 -o output/illust_sheets
 """
 import argparse, glob, os
 from PIL import Image, ImageDraw, ImageFilter
