@@ -95,7 +95,7 @@ output/release_20261101_v2/
   정답 및 해설.pdf          3단 해설
 ```
 
-새 프로젝트는 문항 MD 경로를 명시한다. 인자를 생략하면 현재 저장소의 교시 파일이 선택된다. 현재 `build_final.py`는 파일명 첫 글자를 교시 출력 폴더명으로 사용하므로 `1교시.md`처럼 서로 다른 숫자로 시작하는 파일명을 쓴다. 각 `_build/N/`에 다른 PDF를 섞지 않는다. 현재 `--reuse`는 폴더 안 PDF 존재 여부로 판단하며 입력 해시를 자동 비교하지 않는다.
+새 프로젝트는 문항 MD 경로를 명시한다. 인자를 생략하면 현재 저장소의 교시 파일이 선택된다. 현재 `build_final.py`는 파일명 첫 글자를 교시 출력 폴더명으로 사용하므로 `1교시.md`처럼 서로 다른 숫자로 시작하는 파일명을 쓴다. 합본에는 각 MD의 `title`(생략 시 MD 파일명)에 해당하는 본문 PDF만 사용한다. `--reuse`도 그 파일이 있을 때만 재사용하며, 입력 해시를 자동 비교하지는 않는다.
 
 한 교시의 배치 반복 작업은 `python -m examkit build content/1교시.md -o output/layout_1`로 한다. 해설만 수정했다면 `python tools/build_key.py output/해설_v2.pdf content/1교시.md content/2교시.md content/3교시.md content/4교시.md`로 해설만 재빌드한다. 부모 출력 폴더는 먼저 만든다.
 

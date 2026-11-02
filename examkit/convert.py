@@ -3,7 +3,8 @@
 숨은 한글 창이 대화상자에서 멈추면 COM 호출이 영원히 돌아오지 않으므로,
 실제 변환은 하위 프로세스에서 하고 제한 시간이 지나면 오류로 끝낸다.
 """
-import json, os, subprocess, sys
+import json, os, subprocess, sys, tempfile
+from contextlib import ExitStack
 
 TIMEOUT = 240  # 초. 4쪽 시험지는 보통 1분 안에 끝난다.
 
@@ -12,31 +13,38 @@ def _convert_inproc(hwpx_path, hwp_out=None, pdf_out=None):
     import win32com.client as w
 
     h = w.gencache.EnsureDispatch("HWPFrame.HwpObject")
-    # 보안 모듈이 없으면 파일마다 '접근 허용' 창이 뜨고, 숨은 창에서는 그대로 멈춘다.
-    # HKCU\Software\HNC\HwpAutomation\Modules 의 FilePathCheckerModule 값(DLL 경로)이 있어야 True가 된다.
-    if not h.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule"):
-        h.Quit()
-        raise RuntimeError("한글 보안 모듈 등록 실패: HKCU\\Software\\HNC\\HwpAutomation\\Modules 에 "
-                           "FilePathCheckerModule = <FilePathCheckerModuleExample.dll 경로> 값이 있는지 확인하세요.")
-    h.XHwpWindows.Item(0).Visible = False
-    try:
-        # 숨은 창에서 뜨는 확인 대화상자에 자동으로 답해 변환이 멈추지 않게 한다
-        h.SetMessageBoxMode(0x2FFF1)
-    except Exception:
-        pass
-    if not h.Open(os.path.abspath(hwpx_path), "HWPX", "forceopen:true"):
-        raise RuntimeError("한글에서 열지 못함: %s" % hwpx_path)
-    pages = h.PageCount
-    results = {"pages": pages}
-    for path, fmt in ((hwp_out, "HWP"), (pdf_out, "PDF")):
-        if path:
-            path = os.path.abspath(path)
-            if os.path.exists(path):
-                os.remove(path)
-            results[fmt.lower()] = h.SaveAs(path, fmt, "")
-    h.Clear(1)
-    h.Quit()
-    return results
+    with ExitStack() as staging:
+        pending = []
+        try:
+            # 보안 모듈이 없으면 숨은 창에서 접근 허용 대화상자가 변환을 막는다.
+            if not h.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule"):
+                raise RuntimeError("한글 보안 모듈 등록 실패: HKCU\\Software\\HNC\\HwpAutomation\\Modules 에 "
+                                   "FilePathCheckerModule = <FilePathCheckerModuleExample.dll 경로> 값이 있는지 확인하세요.")
+            h.XHwpWindows.Item(0).Visible = False
+            try:
+                h.SetMessageBoxMode(0x2FFF1)
+            except Exception:
+                pass
+            if not h.Open(os.path.abspath(hwpx_path), "HWPX", "forceopen:true"):
+                raise RuntimeError("한글에서 열지 못함: %s" % hwpx_path)
+            results = {"pages": h.PageCount}
+            for path, fmt in ((hwp_out, "HWP"), (pdf_out, "PDF")):
+                if not path:
+                    continue
+                path = os.path.abspath(path)
+                directory = staging.enter_context(tempfile.TemporaryDirectory(prefix=".examkit-", dir=os.path.dirname(path)))
+                temporary = os.path.join(directory, os.path.basename(path))
+                if not h.SaveAs(temporary, fmt, "") or not os.path.isfile(temporary) or os.path.getsize(temporary) == 0:
+                    raise RuntimeError("한글 %s 저장 실패: %s" % (fmt, path))
+                pending.append((temporary, path))
+                results[fmt.lower()] = True
+        finally:
+            # 저장 실패 때도 문서를 닫아 임시 파일의 잠금을 해제한다.
+            h.Quit()
+        # 모든 형식의 저장이 성공한 뒤에만 기존 결과를 교체한다.
+        for temporary, path in pending:
+            os.replace(temporary, path)
+        return results
 
 
 def _lock(root):

@@ -170,6 +170,8 @@ def check(meta, questions):
     n = len(questions)
     if n != int(meta.get("count", 20)):
         problems.append("문항 수 %d (기대 %s)" % (n, meta.get("count", 20)))
+    if sorted(q["n"] for q in questions) != list(range(1, n + 1)):
+        problems.append("문항 번호는 중복 없이 1부터 연속해야 함")
     three = sum(q["three"] for q in questions)
     if three != int(meta.get("three", 10)):
         problems.append("3점 문항 %d개 (기대 %s)" % (three, meta.get("three", 10)))
@@ -181,12 +183,20 @@ def check(meta, questions):
     for q in questions:
         if q["answer"] is None:
             problems.append("%d번 정답 없음" % q["n"])
+        elif q["answer"] not in range(1, 6):
+            problems.append("%d번 정답은 1~5여야 함" % q["n"])
         if "bogi" in q and "set" not in q:
             problems.append("%d번 보기형인데 @set 없음" % q["n"])
         if "bogi" in q and len(q["bogi"]) != 3:
             problems.append("%d번 보기 항목이 3개가 아님" % q["n"])
         if "opts" in q and len(q["opts"]) != 5:
             problems.append("%d번 선택지가 5개가 아님" % q["n"])
+        if "grid" in q:
+            headers, rows = q["grid"]
+            if len(rows) != 5:
+                problems.append("%d번 짝짓기 선택지가 5개가 아님" % q["n"])
+            if not headers or any(len(row) != len(headers) for row in rows):
+                problems.append("%d번 짝짓기 선택지의 열 수가 일치하지 않음" % q["n"])
         if not q["ask"]:
             problems.append("%d번 질문(? 줄) 없음" % q["n"])
         kinds = ("bogi" in q) + ("opts" in q) + ("grid" in q)

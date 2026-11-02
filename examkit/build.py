@@ -6,6 +6,7 @@
   frags/p0.xml 은 그 첫 문단만 따로 저장한 것. 제목 글자는 HEADER_RULES 로 치환한다.
 """
 import os, re, shutil, zipfile
+from xml.sax.saxutils import escape
 from . import hwpx, materials
 from .figures import render
 
@@ -24,15 +25,15 @@ def _header_rules(meta):
         (re.compile(r'(<hp:drawText lastWidth=")15941(")'), r"\g<1>%d\g<2>" % box_w),
         (re.compile(r'(<hp:sz width=")15941(" widthRelTo="ABSOLUTE" height="3685")'), r"\g<1>%d\g<2>" % box_w),
         (re.compile(r'(<hp:rotationInfo angle="0" centerX=")7970(" centerY="1842")'), r"\g<1>%d\g<2>" % (box_w // 2)),
-        ("2025학년도 대학수학능력시험 문제지", "%s %s 문제지" % (meta.get("year", "2025학년도"), meta.get("exam", "대학수학능력시험"))),
-        ("과학탐구", area),
+        ("2025학년도 대학수학능력시험 문제지", escape("%s %s 문제지" % (meta.get("year", "2025학년도"), meta.get("exam", "대학수학능력시험")))),
+        ("과학탐구", escape(area)),
         # 둥근 상자의 "제 4 교시"는 전각 공백(fwSpace)으로 띄워져 있다
         ("<hp:t>제<hp:fwSpace/>4<hp:fwSpace/>교시</hp:t>",
          "<hp:t>제<hp:fwSpace/>%s<hp:fwSpace/>교시</hp:t>" % (re.sub(r"\D", "", meta.get("period", "")) or "4")),
         # 과목명 "(화학Ⅰ)" 은 '(화' '학' 'Ⅰ' ')' 네 run 으로 쪼개져 있음
-        (re.compile(r'(<hp:run charPrIDRef="(?:30|31)"><hp:t>)\(화(</hp:t>)'), r"\1(" + subj[:1] + r"\2"),
-        (re.compile(r'(<hp:run charPrIDRef="(?:30|49)"><hp:t>)학(</hp:t>)'), r"\1" + subj[1:] + r"\2"),
-        ('<hp:t charStyleIDRef="20">학<hp:fwSpace/></hp:t>', '<hp:t charStyleIDRef="20">%s</hp:t>' % subj[1:]),
+        (re.compile(r'(<hp:run charPrIDRef="(?:30|31)"><hp:t>)\(화(</hp:t>)'), lambda m: m[1] + "(" + escape(subj[:1]) + m[2]),
+        (re.compile(r'(<hp:run charPrIDRef="(?:30|49)"><hp:t>)학(</hp:t>)'), lambda m: m[1] + escape(subj[1:]) + m[2]),
+        ('<hp:t charStyleIDRef="20">학<hp:fwSpace/></hp:t>', '<hp:t charStyleIDRef="20">%s</hp:t>' % escape(subj[1:])),
         (re.compile(r'(<hp:run charPrIDRef="(?:82|81)"><hp:t>)[IⅠ](</hp:t>)'), r"\1\2"),
     ]
 
@@ -85,7 +86,7 @@ def build_question(q, img_sink, review_ids=None):
             parts.append(hwpx.dialog(payload))
         elif kind == "text":
             parts.append(hwpx.q_line(payload))
-    ask = q["ask"] + (" [3점]" if q["three"] else "")
+    ask = q["ask"].rstrip() + ("\u00a0[3점]" if q["three"] else "")
     parts.append(hwpx.q_line(ask))
     if "bogi" in q:
         parts.append(hwpx.bogi(q["bogi"]))

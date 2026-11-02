@@ -12,5 +12,5 @@ for i, p in enumerate(d):
         lines = [("".join(s["text"] for s in l["spans"]).strip(), l["bbox"]) for l in b.get("lines", [])]
         for (prev, pb), (t, bb) in zip(lines, lines[1:]):
             core = re.sub(r"\s", "", t)
-            if 0 < len(core) <= 3 and core not in ("[3점]", "◦") and pb[2] - pb[0] > 150:
+            if core == "[3점]" or (0 < len(core) <= 3 and core != "◦" and pb[2] - pb[0] > 150):
                 print("%d쪽 y=%d  …%s / %s" % (i + 1, bb[1], prev[-12:], t))
