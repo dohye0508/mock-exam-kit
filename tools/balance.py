@@ -12,7 +12,7 @@ import pymupdf
 
 SCALE = 0.754          # PDF(A4)는 8절의 약 0.754배
 LINE_MM = 2.47         # 빈 문단 1개(5pt, 줄 간격 140%)의 실제 높이
-SAFETY_MM = 5          # 다음 문항이 넘어가지 않도록 남겨 둘 여백
+SAFETY_MM = 12         # 다음 문항이 넘어가지 않도록 남겨 둘 여백(작으면 단이 밀린다)
 
 
 def columns(pdf):
@@ -30,13 +30,15 @@ def columns(pdf):
                 m = re.match(r"^(\d{1,2})\.\s", t + " ")
                 if m and 60 < y0 < H - 45 and x0 - (0 if side == "L" else W / 2) < 60:
                     qs[side].append((y0, int(m.group(1))))
-        pix = p.get_pixmap(dpi=72)
-        ink = np.frombuffer(pix.samples, np.uint8).reshape(pix.h, pix.w, pix.n)[:, :, :3].min(axis=2) < 200
-        top, foot = 60, pix.h - 60
-        for side, x0, x1 in (("L", 30, pix.w // 2 - 8), ("R", pix.w // 2 + 8, pix.w - 30)):
-            rows = np.where(ink[top:foot, x0:x1].sum(axis=1) > 0)[0]
-            end = top + (rows.max() if len(rows) else 0)
-            blank = (foot - end) * 25.4 / 72 / SCALE
+        # 단 구분선·쪽 번호 상자 같은 선을 잉크로 세지 않도록 글과 그림의 실제 범위로 잰다
+        scale = W * 25.4 / 72 / 272.0            # 8절(가로 272mm) 그대로면 1, A4로 줄였으면 약 0.77
+        foot = H - 52
+        items = [(b[0], b[1], b[2], b[3]) for b in p.get_text("blocks")]
+        items += [tuple(im["bbox"]) for im in p.get_image_info()]
+        for side, x0, x1 in (("L", 0, W / 2), ("R", W / 2, W)):
+            ys = [y1 for (a, y0, c, y1) in items if a >= x0 - 2 and c <= x1 + 2 and 60 < y0 and y1 < foot + 8]
+            end = max(ys) if ys else foot
+            blank = max(0.0, foot - end) * 25.4 / 72 / scale
             out.append((i + 1, side, [n for _, n in sorted(qs[side])], blank))
     return out
 
