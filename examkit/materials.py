@@ -317,7 +317,7 @@ def _chrome():
     raise RuntimeError("자료 그림을 만들 Chrome/Edge를 찾지 못했습니다.")
 
 
-def render(kind, params, out_png, width_hwp):
+def render(kind, params, out_png, width_hwp, font_css=''):
     """width_hwp(HWPUNIT) 폭의 자료 PNG를 만든다. (경로, 픽셀 폭, 픽셀 높이)를 돌려준다."""
     from PIL import Image, ImageOps
     css_w = int(round(width_hwp / 7200 * 96))
@@ -326,7 +326,7 @@ def render(kind, params, out_png, width_hwp):
     _WORK[0] = os.path.dirname(os.path.abspath(out_png))
     css, body = fn(params, css_w) if kind == "news" else fn(params)
     page = ('<!doctype html><html><head><meta charset="utf-8"><style>%s%s body{width:%dpx}</style></head><body>%s</body></html>'
-            % (BASE_CSS, css, css_w, body))
+            % (BASE_CSS, css + font_css, css_w, body))
     html_path = os.path.splitext(out_png)[0] + ".html"
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(page)

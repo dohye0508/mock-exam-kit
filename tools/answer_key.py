@@ -8,7 +8,7 @@ import pymupdf as fitz
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from examkit.parse_md import parse, check
 
-FONT = "C:/Windows/Fonts/batang.ttc"     # 평가원 정답표처럼 바탕체
+FONT = os.path.join(os.environ["EXAMKIT_TYPST_ROOT"], "fonts", "Batang-native.ttf") if os.environ.get("EXAMKIT_TYPST_ROOT") else "C:/Windows/Fonts/batang.ttc"     # 평가원 정답표처럼 바탕체
 CIRC = "①②③④⑤"
 
 

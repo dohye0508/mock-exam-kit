@@ -5,7 +5,7 @@ exam: 일반 상식 모의고사
 period: 제1교시
 area: 상식탐구
 subject: 일반 상식
-pages: 2
+pages: auto
 count: 3
 three: 1
 handwriting: 아는 만큼 보인다

@@ -24,6 +24,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def font_paths():
+    if os.environ.get('EXAMKIT_TYPST_ROOT'):
+        directory = Path(os.environ['EXAMKIT_TYPST_ROOT']) / 'fonts'
+        paths = dict(body=directory/'HBATANG-native-fallback.ttf', head=directory/'H2HDRM.TTF',
+                     myeong=directory/'H2MJRE.TTF', gothic=directory/'H2GTRE.TTF')
+        for path in paths.values():
+            if not path.is_file(): raise FileNotFoundError(path)
+        return paths
     candidates = [FONT_DIR/'HBATANG.TTF']
     hnc = Path(os.environ.get('ProgramFiles(x86)','C:/Program Files (x86)'))/'Hnc'
     candidates += sorted(hnc.glob('**/TTF/All/HBATANG.TTF'))

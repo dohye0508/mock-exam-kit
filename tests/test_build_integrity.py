@@ -103,30 +103,6 @@ class HwpxTests(unittest.TestCase):
                 self.assertIn('것은?\u00a0[3점]', text)
                 self.assertNotIn('것은? \u00a0', text)
 
-    def test_cover_centers_box_without_leading_padding(self):
-        ns = dict(build_cover.NS, hh='http://www.hancom.co.kr/hwpml/2011/head')
-        with tempfile.TemporaryDirectory() as folder:
-            for phrase in (None, '함께 배우며 자란다'):
-                source = Path(folder) / 'cover.md'
-                text = question()
-                if phrase:
-                    text = text.replace('title: current', 'title: current\nhandwriting: ' + phrase)
-                source.write_text(text, encoding='utf-8')
-                output = build_cover.make_hwpx(source, Path(folder) / 'cover.hwpx')
-                with ZipFile(output) as archive:
-                    section = etree.fromstring(archive.read('Contents/section0.xml'))
-                    header = etree.fromstring(archive.read('Contents/header.xml'))
-                    target = phrase or build_cover.DEFAULT_HANDWRITING
-                    t = next(t for t in section.findall('.//hp:t', ns) if ''.join(t.itertext()) == target)
-                    box = next(t.iterancestors(f'{{{build_cover.HP}}}rect'))
-                    paragraph = box.getparent().getparent()
-                    style = next(p for p in header.findall('.//hh:paraPr', ns)
-                                 if p.get('id') == paragraph.get('paraPrIDRef'))
-                    self.assertEqual(style.find('hh:align', ns).get('horizontal'), 'CENTER')
-                    self.assertEqual(''.join(paragraph.xpath('./hp:run/hp:t/text()', namespaces=ns)), '')
-                    self.assertEqual(box.find('hp:sz', ns).get('width'), '28826')
-                    self.assertEqual(box.find('hp:pos', ns).get('treatAsChar'), '1')
-
     def test_widows_reports_isolated_score(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'score.pdf'

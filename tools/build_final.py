@@ -1,7 +1,7 @@
 """최종본 한 벌을 한 번에 만든다: 원본 문제 합본, 정답표, 정답 및 해설.
   python tools/build_final.py ishs/pdf                      # content/1~4교시.md 전부
   python tools/build_final.py out content/3교시.md content/4교시.md   # 일부 교시만
-필요: 한글(Hancom) 변환 환경(docs/hwpx-layout-notes.md). 시험지 변환이 오래 걸리니 이미 빌드한 PDF를 쓰려면 --reuse.
+필요: Typst 및 원본 조판 엔진/글꼴(docs/typst-migration.md). 기존 PDF를 명시적으로 재사용하려면 --reuse.
 출력: <out>/원본 문제.pdf(교시별 표지 포함), <out>/정답표.pdf, <out>/정답 및 해설.pdf, <out>/교시별/<교시>{, 정답표, 정답 및 해설}.pdf
 본문은 <out>/_build/, 편집 가능한 표지는 <out>/_covers/에 남는다. --no-cover로 표지만 생략할 수 있다.
 """
@@ -23,7 +23,7 @@ def main():
     mds = [os.path.abspath(md) for md in (args[1:] or sorted(glob.glob(os.path.join(ROOT, "content", "[0-9]교시.md"))))]
     os.makedirs(out, exist_ok=True)
     # 한 번에 끝나도록 문항 검사부터 같은 명령 안에서 한다(실패하면 여기서 멈춤)
-    subprocess.run([sys.executable, "-m", "examkit", "check", *mds], cwd=ROOT, check=True)
+    subprocess.run([sys.executable, "-X", "utf8", "-m", "examkit", "check", *mds], cwd=ROOT, check=True)
     pdfs = []
     for md in mds:
         n = os.path.basename(md)[0]
@@ -33,7 +33,7 @@ def main():
         title = meta.get("title", os.path.splitext(os.path.basename(md))[0])
         pdf = os.path.join(d, title + ".pdf")
         if not (reuse and os.path.isfile(pdf)):
-            subprocess.run([sys.executable, "-m", "examkit", "build", md, "-o", d], cwd=ROOT, check=True)
+            subprocess.run([sys.executable, "-X", "utf8", "-m", "examkit", "build", md, "-o", d], cwd=ROOT, check=True)
         if not os.path.isfile(pdf):
             raise FileNotFoundError("본문 PDF가 생성되지 않았습니다: %s" % pdf)
         pdfs.append(pdf)
@@ -45,7 +45,11 @@ def main():
                 book.insert_pdf(body)
     else:
         import build_cover
-        covers = build_cover.build(mds, os.path.join(out, "_covers"))
+        counts = []
+        for pdf in pdfs:
+            with fitz.open(pdf) as document:
+                counts.append(len(document))
+        covers = build_cover.build(mds, os.path.join(out, "_covers"), page_counts=counts)
         book = build_cover.assemble(pdfs, covers, mds)
     book.save(os.path.join(out, "원본 문제.pdf"), garbage=4, deflate=True)
     print("원본 문제.pdf", book.page_count, "쪽")

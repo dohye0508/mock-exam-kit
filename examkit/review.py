@@ -2,17 +2,16 @@
 """검토본: 교시별로 정답 선택지를 @status 색으로 칠해 빌드하고, 표지 한 장과 함께 PDF 하나로 이어 붙인다.
 
 python -m examkit review "content/*교시.md" -o output/review
-  → output/review/<title>_검토.hwp/.pdf, output/review/검토본.pdf
+  → output/review/<title>_검토.typ/.pdf, output/review/검토본.pdf
 PDF 병합과 표지에는 PyMuPDF(pip install pymupdf)가 필요하다.
 """
 import datetime, os
 from .parse_md import parse, check
-from .build import build, REVIEW_COLORS
-from .convert import convert
+from .typst_body import build, REVIEW_COLORS
+from .typst_runtime import engine_root
 
 STATUS_LABEL = {"keep": "그대로 둔 문제", "mod": "수정한 문제", "new": "새로 만들거나 발전시킨 문제"}
 MARKS = "①②③④⑤"
-FONT_CANDIDATES = [r"C:\Windows\Fonts\malgun.ttf", r"C:\Windows\Fonts\malgunbd.ttf", "/System/Library/Fonts/AppleSDGothicNeo.ttc"]
 
 
 def _rgb(hex_color):
@@ -22,11 +21,12 @@ def _rgb(hex_color):
 
 def _cover(doc, summary, page_size):
     import pymupdf
-    font = next((f for f in FONT_CANDIDATES if os.path.exists(f)), None)
+    font = str(engine_root() / 'fonts/H2GTRM.ttf')
+    if not os.path.isfile(font): raise FileNotFoundError(font)
     page = doc.new_page(0, width=page_size[0], height=page_size[1])
     kw = dict(fontname="kr", fontfile=font) if font else {}
     x, y = 60, 90
-    page.insert_text((x, y), "검토본 · 1~4교시 (%s)" % datetime.date.today().isoformat(), fontsize=24, **kw)
+    page.insert_text((x, y), "검토본 (%s)" % datetime.date.today().isoformat(), fontsize=24, **kw)
     y += 40
     page.insert_text((x, y), "각 문제의 정답 선택지를 아래 색으로 칠했습니다.", fontsize=13, **kw)
     y += 34
@@ -79,7 +79,7 @@ def _mark_answers(doc, qs):
     pos = _question_starts(doc)
     order = sorted(pos.items(), key=lambda kv: kv[1])
     byn = {q["n"]: q for q in qs}
-    missing = []
+    missing = sorted(set(byn)-set(pos))
     for i, (n, (pi, col, y)) in enumerate(order):
         q = byn.get(n)
         if not q or not q.get("answer"):
@@ -126,9 +126,8 @@ def _mark_answers(doc, qs):
 def _overlay_paper(meta, qs, base, template):
     """색 없이 빌드·변환한 뒤 PDF 위에 정답 색 상자를 그려 <base>.pdf 로 저장한다."""
     import pymupdf
-    plain = base + "_plain"  # 멈춘 한글이 잡고 있을 수 있는 _검토.hwpx 와 겹치지 않게 따로 만든다
-    build(meta, qs, plain + ".hwpx", template=template)
-    r = convert(plain + ".hwpx", None, plain + ".pdf")
+    plain = base + "_plain"
+    r = build(meta, qs, plain + ".pdf", template=template)
     with pymupdf.open(plain + ".pdf") as d:
         missing = _mark_answers(d, qs)
         d.save(base + ".pdf", garbage=3, deflate=True)
@@ -137,8 +136,7 @@ def _overlay_paper(meta, qs, base, template):
 
 def review(files, out_dir, template="kice-sci", reuse=False, overlay=False):
     """reuse=True 이면 이미 만든 <title>_검토.pdf 를 그대로 쓰고 표지와 병합만 다시 한다.
-    overlay=True 이면 글자색 대신 PDF 위에 색 상자를 그린다(한글 변환이 멈출 때의 대체 경로).
-    글자색 방식에서 변환이 시간 초과로 실패하면 그 교시만 자동으로 색 상자 방식으로 바꾼다."""
+    overlay=True 이면 글자색 대신 PDF 위에 색 상자를 그린다. 두 방식 모두 Typst 본문을 사용한다."""
     import pymupdf
     os.makedirs(out_dir, exist_ok=True)
     summary, pdfs = [], []
@@ -151,6 +149,8 @@ def review(files, out_dir, template="kice-sci", reuse=False, overlay=False):
         if missing:
             problems.append("@status 없음: " + ", ".join(missing))
         title = meta.get("title", os.path.splitext(os.path.basename(f))[0])
+        if os.path.basename(title) != title or title in ('', '.', '..'):
+            raise ValueError('title에는 폴더 경로가 아닌 출력 파일 이름을 적으세요.')
         base = os.path.join(out_dir, title + "_검토")
         unmarked = []
         if reuse and os.path.exists(base + ".pdf"):
@@ -159,16 +159,11 @@ def review(files, out_dir, template="kice-sci", reuse=False, overlay=False):
         elif overlay:
             r, unmarked = _overlay_paper(meta, qs, base, template)
         else:
-            try:
-                build(meta, qs, base + ".hwpx", template=template, review=True)
-                r = convert(base + ".hwpx", base + ".hwp", base + ".pdf")
-            except (RuntimeError, PermissionError) as e:
-                print("[알림] %s: 글자색 검토본 변환 실패 → 색 상자 방식으로 다시 만듭니다. (%s)" % (title, str(e).splitlines()[0]))
-                r, unmarked = _overlay_paper(meta, qs, base, template)
+            r = build(meta, qs, base + ".pdf", template=template, review=True)
         if unmarked:
             problems.append("색 표시 못 찾음: " + ", ".join(map(str, unmarked)))
         print("%s: pages=%s %s" % (title, r.get("pages"), "; ".join(problems) or "OK"))
-        if str(r.get("pages")) != str(meta.get("pages", "4")):
+        if meta.get("pages") != "auto" and str(r.get("pages")) != str(meta.get("pages", "4")):
             problems.append("쪽수 %s (기대 %s)" % (r.get("pages"), meta.get("pages", "4")))
         summary.append((title, [(q["n"], q.get("status", "keep"), q["answer"]) for q in qs], problems))
         pdfs.append(base + ".pdf")

@@ -10,7 +10,7 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 �
 
 [공통 제작 절차와 실행 조건](docs/agent-workflow.md)을 따른다. Gemini CLI용 `GEMINI.md`는 공통 AGENTS.md를 가져오는 진입 파일이다. 다른 환경은 해당 문서를 직접 열어 읽게 한다. 문서만으로 도구 권한이나 이미지 생성 기능이 생기지는 않는다. Nano Banana 등의 생성 기능을 실제로 사용할 수 있으면 직접 PNG를 만들고, 없으면 필요한 요청서와 미완료 작업을 남긴다. 이미지 API를 자동 연결하는 코드는 포함되어 있지 않다.
 
-표지와 필적 문구는 프로젝트 메타데이터에서 반영한다. 현재 전체 문제지 PDF 제작에는 Windows·한컴오피스·지정 글꼴이 필요하다. 어떤 주제든 같은 제작 절차를 적용하되, 모든 환경·문항 유형에서 무조건 자동 완성을 보장하지 않는다.
+표지와 필적 문구는 프로젝트 메타데이터에서 반영한다. 현재 전체 문제지 PDF 제작에는 Python·Typst·기존 조판 엔진과 원본 글꼴이 필요하다. 한글 프로그램은 실행하지 않는다. 어떤 주제든 같은 제작 절차를 적용하되, 모든 환경·문항 유형에서 무조건 자동 완성을 보장하지 않는다.
 
 ## 새 세션에서 시작하는 순서 — 필독
 
@@ -26,8 +26,8 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 �
 
 | 대상 | 실제 원본/구현 | 수정할 곳과 실행기 | 반드시 함께 읽을 문서 |
 |---|---|---|---|
-| 문제 본문(2단) | `templates/kice-sci/`의 HWPX 구성 파일. `Contents/header.xml`은 글꼴/문단, `frags/p0.xml`은 첫 쪽 머리, `Contents/masterpage*.xml`은 바탕쪽 | 내용은 `content/N교시.md`. `examkit/parse_md.py` → `examkit/build.py`·`hwpx.py` → `convert.py` | [HWPX 배치 노트](docs/hwpx-layout-notes.md), 아래 MD 문법 |
-| 각 교시 표지 | `templates/covers/csat-2017-v2-source.hwp/.hwpx/.pdf`. 받은 원본은 보존 | `tools/build_cover.py`; 제목·교시·과목은 문항 MD 메타데이터 | [표지 양식](docs/cover-format.md) |
+| 문제 본문(2단) | 외부 엔진의 과탐·사탐 원본 HWP 서식과 자동 배치 | 내용은 `content/N교시.md`. `examkit/parse_md.py` → `examkit/typst_body.py`·`_typst_engine.py` → Typst | [HWPX 배치 노트](docs/hwpx-layout-notes.md), 아래 MD 문법 |
+| 각 교시 표지 | 제공된 국어·수학 HWP에서 가져온 외부 Typst 엔진 (`EXAMKIT_TYPST_ROOT`) | `tools/build_cover.py` → `examkit/cover.py`; 문구는 MD 메타데이터 | [표지 양식](docs/cover-format.md) |
 | 정답 및 해설(3단) | 원본 PDF 실측값을 `tools/build_key.py`에 구현. 표 열 배분 `tools/key_tables.py`, 일반 굵기 수식 `tools/key_math.py`. 별도 HWP 원본은 없음 | 내용은 `content/N교시_해설.md`, 정답은 문항 MD. `tools/build_key.py` | [해설 양식](docs/explanation-format.md), [미리보기](docs/explanation-layout-preview.png) |
 | 독립 정답표 | `tools/answer_key.py`에 그리는 코드. 해설 안의 작은 정답표와 별개 | 문항 MD에서 정답/배점 읽기 → `tools/answer_key.py` | [재현 작업 절차](docs/reproduction-guide.md) |
 | 그림과 글상자 | 최종 PNG는 `assets/illust/`, 코드 도식은 `assets/illust/sources/`, 자료 렌더러는 `examkit/materials.py` | MD의 `figure file`·`textN`·`bubbleN`·`tableN`; 정확한 도식은 코드 | [HWPX 배치 노트](docs/hwpx-layout-notes.md), [기출 가이드](docs/visual-reference-guide.md) |
@@ -37,51 +37,56 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 �
 | 색 표시 검토본 | `examkit/review.py` | `python -m examkit review …`; 정답이 드러나는 검토 전용 | [재현 작업 절차](docs/reproduction-guide.md) |
 
 수능(평가원) 탐구 영역의 원본 양식을 사용하는 **모의고사 문제지 생성 툴킷**.
-Markdown으로 문항을 쓰면 2단 HWP/PDF가 나온다. 쪽수는 각 문항 파일의 설정을 따르며, 최종 합본에는 교시별 표지를 붙인다. 그림(그래프·배치도), 표, 수식, 분수, <보기> 상자, 짝짓기 선택지를 지원한다.
+Markdown으로 문항을 쓰면 2단 Typst/PDF가 나온다. 쪽수는 각 문항 파일의 설정을 따르며, 최종 합본에는 교시별 표지를 붙인다. 그림(그래프·배치도), 표, 수식, 분수, <보기> 상자, 짝짓기 선택지를 지원한다.
 
 > 일반 예시는 `content/example.md`이며, 현재 `ishs` 브랜치에서는 `content/1교시.md`~`4교시.md`와 각 해설도 Git 추적 대상이다. `output/`과 생성 PDF/HWP는 기본적으로 무시된다. 실제 포함 여부는 `git ls-files`와 `.gitignore`로 확인한다. 참고 원본과 양식의 배포 범위를 확인하지 않고 저장소를 공개로 바꾸지 않는다.
 
 ## 요구 사항
-- Windows + **한컴오피스 한글** (HWPX → HWP/PDF 변환을 COM 자동화로 수행)
-- Python 3.10+ : `pip install -r requirements.txt` (pywin32, lxml, matplotlib)
-- 선택: `skills/science-apparatus` 의 SVG 스케치를 쓰려면 `pip install cairosvg`
+- Python 3.10+: `pip install -r requirements.txt`
+- Typst 실행 파일과 기존 조판 엔진·원본 글꼴. 한글 프로그램·COM·pywin32는 기본 빌드에 필요하지 않다.
+- 엔진은 공개 저장소에 포함되지 않는다. [Typst 설정과 지원 범위](docs/typst-migration.md)를 먼저 확인한다.
+- 선택: HTML 자료 그림은 Chrome/Edge, 실험 SVG는 CairoSVG가 필요하다.
+
+```powershell
+$env:EXAMKIT_TYPST_ROOT='C:/path/to/문제 조판'
+$env:TYPST_EXE='C:/path/to/typst.exe'
+```
 
 ## 사용법
 ```bash
 python -m examkit check content/1교시.md          # 문항 수·3점 개수·정답 분포 점검
-python -m examkit build content/1교시.md -o output # output/<title>.hwpx, .hwp, .pdf
+python -m examkit build content/1교시.md -o output # output/<title>.typ, .assets/, .pdf
 python -m examkit build "content/*교시.md"          # 여러 개
-python -m examkit build content/example.md --no-convert   # 한글 없이 hwpx만
+python -m examkit build content/example.md --no-compile   # Typst/JSON만
 ```
 문항 작성 원칙은 [출제 노하우](docs/authoring-style.md)와 [prompt.md](prompt.md)(유형 배합·배점·평가원 어투)를 읽는다. 문법 예시는 [content/example.md](content/example.md).
 
-문항 번호·정답 범위·선택지 구조 검사에 실패하면 본문·정답표·검토본 출력을 중단한다. 한글 변환은 요청한 형식 모두를 임시 파일에 저장한 뒤 기존 결과를 교체한다. 저장 실패 시 기존 결과는 보존되며 명령은 실패한다.
+문항 번호·정답 범위·선택지 구조 검사에 실패하면 본문·정답표·검토본 출력을 중단한다. PDF는 임시 파일에 컴파일하고 쪽수·머리글·문항 번호를 검사한 뒤 교체한다. 조판·컴파일·검사 실패 시 기존 PDF는 보존된다.
 
-회귀 테스트는 `python -m unittest discover -s tests -v`로 실행한다. 실제 HWPX 조립과 PDF 합본 선택을 검사하며, 한글 COM 저장은 모의 객체로 확인한다. 실제 한글 렌더링·인쇄 검수는 별도다.
+회귀 테스트는 `python -m unittest discover -s tests -v`로 실행한다. 엔진 환경변수가 설정되면 실제 Typst 본문·표지·검토본, 실패 시 기존 PDF 보존을 검사한다. 본문 통합 검사는 COM 모듈을 차단한다. 환경변수가 없으면 해당 통합 검사는 건너뛴다.
 
 ### 교시별 표지
 
-사용자가 제공한 HWP 원본을 그대로 사용하는 [표지 양식과 사용법](docs/cover-format.md)이 있다. 원본은 `templates/covers/`, 빌더는 `tools/build_cover.py`다. 글꼴이나 상자를 별도로 흉내 내지 않는다.
+표지 기본 출력은 **Typst**다. 국어·수학 HWP에서 가져온 기존 조판 엔진과 글꼴을 `EXAMKIT_TYPST_ROOT`로 연결하고 Typst 실행 파일을 `TYPST_EXE`로 지정한다. 엔진은 이 저장소에 포함되지 않는다. 설정·문구 변경·원본 문단 번호는 [표지 사용법](docs/cover-format.md)을 따른다.
 
 ```powershell
-python tools/build_cover.py output/covers                         # 네 교시 표지: HWPX/HWP/PDF
-python tools/build_cover.py output/covers content/1교시.md         # 한 교시
-python tools/build_cover.py output/covers --no-convert content/1교시.md # HWPX만
-python tools/build_final.py out                                   # 교시마다 표지 1쪽을 붙인 최종 합본
+python tools/build_cover.py output/covers content/example.md
+python tools/build_cover.py output/covers --no-compile content/example.md # Typst/JSON만
+python tools/build_final.py out # 동일한 Typst 표지를 본문 앞에 추가
 ```
 
-제공된 객관식 표지 프리셋은 가형·나형·홀수형과 단답형 안내를 제거한다. 필적 확인 문구는 `handwriting:`으로 정한다(생략 시 프리셋 기본 문구 사용). 시험명·교시·영역·과목은 문항 MD 메타데이터에서 읽는다. 다른 프로젝트의 필적 문구/발행 표시는 `handwriting:`/`issuer:`로 바꾼다. 표지는 본문 쪽수에 포함하지 않으며, `--no-cover`로 명시적으로 생략할 수 있다. 원본 크기 표지와 본문 용지에 균일 축소한 표지를 구분한다.
+`cover_template: korean` 또는 `math`로 양식을 고른다. `cover_title`, `cover_area`, `period`, `handwriting`, `issuer`, `cover_p번호`로 문구를 바꾼다. 특정 과목명·선택지 수·배점으로 고정하지 않는다. 표지는 본문 쪽수에 포함하지 않으며 `--no-cover`로 생략할 수 있다. **본문도 Typst로 생성**한다. `body_template: science`(기본) 또는 `social`로 본문 틀을 고르고 영역명·과목명은 자유롭게 지정한다.
 
 ### 정답표와 정답 및 해설
 ```bash
 python tools/answer_key.py 정답표.pdf content/1교시.md content/2교시.md      # 평가원 양식 정답표(교시마다 한 쪽)
 python tools/build_key.py 해설.pdf content/1교시.md content/2교시.md         # 정답 및 해설(3단 편집). content/N교시_해설.md를 읽는다
-python tools/build_final.py out                                              # 합본 3개 + 교시별/<교시>{, 정답표, 정답 및 해설}.pdf (한글 필요)
+python tools/build_final.py out                                              # 합본 3개 + 교시별/<교시>{, 정답표, 정답 및 해설}.pdf (한글 불필요)
 python tools/build_final.py out --reuse                                      # 이미 변환한 시험지 PDF를 재사용
 ```
 해설 파일(`content/N교시_해설.md`)은 `## 1. [출제의도] …`로 시작하고 바로 아래 줄에 `@answer 3`을 적는다(문항 md와 번호·정답이 다르거나 해설이 없으면 빌드가 중단된다). 예시 PDF를 실측한 지면·글꼴·정답표 규격은 [해설 양식](docs/explanation-format.md)을 따른다. 본문은 문단으로 쓰며 `<b> <i> <sub> <sup>`와 유니코드 기호를 쓸 수 있다.
 
-해설의 **단순 사칙연산은 일반 본문**으로 쓰고, 분수·첨자·근호·합 기호·변수식은 LaTeX로 조판한다. 비교나 경우 분류에는 표를 쓴다. 필요하면 문제에 사용한 기존 삽화·도식도 재사용해 풀이를 설명한다. 해설 빌더는 `$…$`, 별도 문단의 `$$…$$`, Markdown 표와 `![설명](assets/illust/파일.png)`를 지원한다. 지원 범위·의존성·검증 방법은 [해설의 수식·표·삽화](docs/explanation-format.md#수식표삽화-활용)를 따른다. 표는 원본처럼 얇은 선·흰 바탕·본문 크기 글꼴을 쓰며, 짧은 머리글은 실제 글폭으로 한 줄을 확보한다. 수식은 일반 굵기로 쓰고 분자·분모가 지나치게 작아지지 않도록 한다. 현재 프리셋은 분자·분모도 9pt로 조판하며, 필요한 줄/셀만 높이를 늘린다. 문제 본문 HWPX의 수식 지원과 해설 PDF의 지원은 별개다.
+해설의 **단순 사칙연산은 일반 본문**으로 쓰고, 분수·첨자·근호·합 기호·변수식은 LaTeX로 조판한다. 비교나 경우 분류에는 표를 쓴다. 필요하면 문제에 사용한 기존 삽화·도식도 재사용해 풀이를 설명한다. 해설 빌더는 `$…$`, 별도 문단의 `$$…$$`, Markdown 표와 `![설명](assets/illust/파일.png)`를 지원한다. 지원 범위·의존성·검증 방법은 [해설의 수식·표·삽화](docs/explanation-format.md#수식표삽화-활용)를 따른다. 표는 원본처럼 얇은 선·흰 바탕·본문 크기 글꼴을 쓰며, 짧은 머리글은 실제 글폭으로 한 줄을 확보한다. 수식은 일반 굵기로 쓰고 분자·분모가 지나치게 작아지지 않도록 한다. 현재 프리셋은 분자·분모도 9pt로 조판하며, 필요한 줄/셀만 높이를 늘린다. 본문·해설 모두 원본 HancomEQN 글꼴을 사용하며 지원하지 않는 수식은 오류로 알린다.
 
 ## 문항 Markdown 문법
 ```markdown
@@ -92,7 +97,7 @@ exam: 모의평가
 period: 제1교시          # 둥근 상자 "제4교시" 자리
 area: 사회탐구           # "과학탐구" 자리. '영역'은 빼고 적는다(붙여도 자동으로 떼어 냄)
 subject: 한국지리       # "(화학Ⅰ)" 자리에 들어갈 과목. 길면 짝수 쪽 머리글 글상자가 자동으로 넓어진다
-pages: 4                 # 본문 쪽수(빌드 결과와 같아야 표지 합본이 된다. 권장: 5문항↓ 2쪽, 6~10문항 4쪽, 20문항 4~6쪽)(쪽번호 분모, 쪽수 검사). 4 초과(예: 6)면 바탕쪽을 자동으로 늘리고 '확인 사항'을 마지막 쪽에 둔다
+pages: auto              # 자동 배치. 숫자를 쓰면 그 쪽수를 확보하고 초과 시 오류
 count: 20
 three: 10
 ---
@@ -127,7 +132,7 @@ ylabel: 학생 수(명)
 @answer 3
 ```
 선택지는 세 가지 중 하나만 쓴다: `::: bogi` + `@set`, 문장형 `① …`~`⑤ …`(짧으면 한 줄 표로 배치), 짝짓기 `::: grid headers=(가),(나),(다)` + `값 | 값 | 값` 5줄.
-인라인 마크업: 수식은 `$…$` 안에 LaTeX(`$rac{2}{5}$`, `\sqrt`, `\sum`, `^`, `_`, `\le` 등 → `hwpx.latex_to_hwp`가 한글 수식으로 변환) 또는 한글 수식 스크립트(`$ {a} over {b} $`) 둘 다 된다. `__밑줄__`(본문 전용, 그림 위 글상자에서는 쓰지 않음), `{{frac|분자|분모}}` 세로 분수. `~`는 빌드 때 `∼`로 바뀐다. 표 칸에 `^`만 쓰면 위 칸과 세로 합치기. 선택지를 한 줄로 강제하려면 문항 안에 `@inline`.
+인라인 마크업: 수식은 `$…$` 안에 LaTeX(`$rac{2}{5}$`, `\sqrt`, `\sum`, `^`, `_`, `\le` 등 → 원본 HancomEQN 글꼴로 조판) 또는 한글 수식 스크립트(`$ {a} over {b} $`) 둘 다 된다. `__밑줄__`(본문 전용, 그림 위 글상자에서는 쓰지 않음), `{{frac|분자|분모}}` 세로 분수. `~`는 빌드 때 `∼`로 바뀐다. 표 칸에 `^`만 쓰면 위 칸과 세로 합치기. 선택지를 한 줄로 강제하려면 문항 안에 `@inline`.
 
 그림 블록 파라미터: `values1:, values2:, legend:`(복수 계열), `ylim:`, `title:`, `inch_w:/inch_h:`(그림 원본 크기), timeline은 `events: 시각|문구; 시각|문구`, table_grid는 `rows: A,B;C,D`(`-` 빈칸, `#`은 음영).
 
@@ -155,7 +160,7 @@ ylabel: 학생 수(명)
 
 ## 구조
 ```
-examkit/    parse_md.py(문법) build.py(조립) hwpx.py(XML 조각) figures.py(그림) convert.py(한글 변환) cli.py
+examkit/    parse_md.py(문법) typst_body.py(본문) _typst_engine.py(원본 서식 연결) cover.py(표지) native_math.py(수식) cli.py
 templates/kice-sci/   평가원 과탐 양식을 HWPX로 풀어 둔 것 + frags/(첫 문단 등 조각)
 skills/science-apparatus/   실험 기구·배치 도식 SVG 스케치 스킬(gist 기반), figures.sketch 가 호출
 templates/covers/    수정하지 않는 원본 표지 HWP/HWPX/PDF
@@ -171,5 +176,6 @@ ishs/       현재 학교 프로젝트 전용 규칙·인수인계 (다른 시�
 저장소에는 기출 원본을 두지 않는다. 어떤 모의고사든 PDF나 이미지로 구해 로컬 `assets/reference/`에 넣으면(git 제외) AI가 그 문항의 자료 형식, 그림 구도, 선택지 배치를 학습해 새 문항에 반영한다. 출처 표기나 별도 목록은 필요 없다. 자세한 사용법은 [시각 자료 가이드](docs/visual-reference-guide.md).
 
 ## 다른 양식 쓰기
-1. 양식 HWP를 한글에서 HWPX로 저장 → 압축 해제해 `templates/<이름>/` 에 둔다.
-2. 첫 문단(구역 설정+머리글)을 `frags/p0.xml` 로 뽑고, `hwpx.STYLE`/`BF` 의 서식 ID와 `build._header_rules` 의 치환 규칙을 그 양식에 맞게 고친다.
+`body_template: science` 또는 `social`, `cover_template: korean` 또는 `math`를 사용한다. 표시 문구는 `body_title`, `area`, `subject`, `period`, 표지 메타데이터로 수정한다. 다른 본문 프로필을 연결하려면 원본 엔진과 Markdown 어댑터의 지원 범위를 함께 확장해야 한다.
+
+`build.py`, `hwpx.py`, `convert.py`와 HWPX 템플릿은 이전 구현 및 이미지 처리 보조 함수 때문에 남아 있다. 기본 CLI가 한글 변환을 호출하지는 않는다.

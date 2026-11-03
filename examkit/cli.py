@@ -4,7 +4,7 @@
    python -m examkit answers content/*.md [-o content/answers]"""
 import argparse, glob, os, sys
 from .parse_md import parse, check
-from .build import build
+from .typst_body import build
 
 MARKS = "①②③④⑤"
 
@@ -30,11 +30,11 @@ def write_answers(meta, qs, name, out_dir):
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="examkit")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    b = sub.add_parser("build", help="md → hwpx (+hwp, pdf)")
+    b = sub.add_parser("build", help="md → Typst/JSON/PDF (한글 실행 불필요)")
     b.add_argument("files", nargs="+")
     b.add_argument("-o", "--out", default="output")
     b.add_argument("-t", "--template", default="kice-sci")
-    b.add_argument("--no-convert", action="store_true", help="한글 변환(hwp/pdf) 생략")
+    b.add_argument("--no-compile", "--no-convert", dest="no_convert", action="store_true", help="Typst 소스까지만 생성")
     b.add_argument("--only", help="문항 범위만 빌드(디버그용), 예: 1-10")
     c = sub.add_parser("check", help="문항 수·배점·정답 분포 점검")
     c.add_argument("files", nargs="+")
@@ -46,7 +46,7 @@ def main(argv=None):
     r.add_argument("-o", "--out", default="output/review")
     r.add_argument("-t", "--template", default="kice-sci")
     r.add_argument("--reuse", action="store_true", help="이미 만든 검토 PDF로 표지·병합만 다시")
-    r.add_argument("--overlay", action="store_true", help="글자색 대신 PDF 위에 색 상자로 정답 표시(한글 변환이 멈출 때)")
+    r.add_argument("--overlay", action="store_true", help="글자색 대신 PDF 위에 색 상자로 정답 표시")
     a = ap.parse_args(argv)
 
     files = [f for pat in a.files for f in (glob.glob(pat) or [pat])]
@@ -55,7 +55,8 @@ def main(argv=None):
         return review(files, a.out, a.template, reuse=a.reuse, overlay=a.overlay)
     rc = 0
     for f in files:
-        meta, qs = parse(open(f, encoding="utf-8").read())
+        with open(f, encoding="utf-8-sig") as source:
+            meta, qs = parse(source.read())
         probs = check(meta, qs)
         name = os.path.splitext(os.path.basename(f))[0]
         if a.cmd == "check":
@@ -71,19 +72,16 @@ def main(argv=None):
             continue
         os.makedirs(a.out, exist_ok=True)
         title = meta.get("title", name)
+        if os.path.basename(title) != title or title in ('', '.', '..'):
+            raise ValueError('title에는 폴더 경로가 아닌 출력 파일 이름을 적으세요.')
         if a.only:
             lo, hi = (int(x) for x in a.only.split("-"))
             qs = [q for q in qs if lo <= q["n"] <= hi]
             title += "_%s" % a.only
-        hwpx = os.path.join(a.out, title + ".hwpx")
-        build(meta, qs, hwpx, template=a.template)
-        print("built", hwpx)
-        if not a.no_convert:
-            from .convert import convert
-            r = convert(hwpx, hwpx[:-5] + ".hwp", hwpx[:-5] + ".pdf")
-            print("  pages=%s hwp=%s pdf=%s" % (r.get("pages"), r.get("hwp"), r.get("pdf")))
-            if str(r.get("pages")) != str(meta.get("pages", "4")):
-                print("  [경고] 쪽수 %s (기대 %s) — {page}/{col}/{gap} 조정 필요" % (r.get("pages"), meta.get("pages", "4")))
+            meta = meta | {'pages': 'auto'}
+        pdf = os.path.join(a.out, title + ".pdf")
+        result = build(meta, qs, pdf, template=a.template, no_compile=a.no_convert)
+        print("built", pdf[:-4] + '.typ' if a.no_convert else pdf, "pages=", result['pages'])
     return rc
 
 

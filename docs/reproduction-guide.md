@@ -13,7 +13,7 @@
 | 본문 배치 수정 | MD의 그림 크기·`{page}`·`{col}`·`{gap}`; 공통 엔진 오류이면 `examkit/` | 정답에 필요한 단서, 원본 템플릿의 승인된 서식 |
 | 삽화 추가/교체 | `assets/illust/<id>.png`, 해당 MD의 `figure file`와 얹는 글 좌표 | 대사·숫자·단서의 정확한 원문 |
 
-다른 시험을 새로 만들면 프로젝트 문서에 대상·과목·문항 수·배점·분포·쪽수·공유 전제·자료 출처를 먼저 적는다. 인곽의 학교 상식과 문항별 과거 피드백은 범용 출제 규칙이 아니다. 현재 CLI 검사와 독립 정답표/표지에는 5지선다·2/3점·20문항 중심의 제약이 남아 있다. 다른 문항 체계는 관련 코드와 검사도 함께 변경해야 한다.
+다른 시험을 새로 만들면 프로젝트 문서에 대상·과목·문항 수·배점·분포·쪽수·공유 전제·자료 출처를 먼저 적는다. 인곽의 학교 상식과 문항별 과거 피드백은 범용 출제 규칙이 아니다. 현재 CLI 검사와 독립 정답표에는 5지선다·2/3점·20문항 중심의 제약이 남아 있다. 다른 문항 체계는 관련 코드와 검사도 함께 변경해야 한다.
 
 ## 2. 파일·환경 확인
 
@@ -27,23 +27,22 @@ python -c "import lxml, matplotlib, pymupdf, PIL, win32com.client; print('import
 ```
 
 - Python이 여러 개면 위에서 확인한 실행 파일을 이후 명령에도 동일하게 쓴다. 현재 작업 PC의 경로는 프로젝트 인수인계에만 기록한다.
-- HWP/HWPX → PDF에는 Windows + 한컴오피스 한글 + COM + 자동화 보안 모듈이 필요하다. [변환 환경](hwpx-layout-notes.md)의 10절을 따른다. `HKCU\Software\HNC\HwpAutomation\Modules`의 `FilePathCheckerModule`은 **실제로 존재하는 DLL 절대 경로**여야 한다. DLL은 이 저장소에 포함되어 있지 않다.
-- 설치·레지스트리 변경이 필요한 경우 현재 사용자의 허용 범위와 실행 환경 정책을 따른다. 기존 등록이 유효하면 다시 설치하지 않는다. 사용자가 열어 둔 한글 문서를 일괄 종료하지 않는다.
-- 글꼴: 본문은 템플릿의 `Contents/header.xml`; 표지는 [표지 글꼴표](cover-format.md); 해설은 [해설 글꼴표](explanation-format.md)를 따른다. 해설은 `HBATANG.TTF`, `H2HDRM.TTF`, `H2MJRE.TTF`, `H2GTRE.TTF`, 독립 정답표는 `C:/Windows/Fonts/batang.ttc`를 사용한다. 함초롬바탕은 한컴 바탕의 대체물이 아니다.
-- `examkit/materials.py`의 자료 이미지는 Chrome/Edge headless가 필요하다. `pdftoppm`은 PDF 렌더링에 쓴다. 없으면 사용 가능한 렌더러를 확인하고 검증 방법을 기록한다.
-- 한글이 없으면 `--no-convert`로 HWPX까지 만들 수 있다. 그 경우 PDF 변환·최종 쪽수·인쇄 배치까지 검증했다고 보고하지 않는다.
+- Python·Typst와 기존 원본 조판 엔진/글꼴이 필요하다. `EXAMKIT_TYPST_ROOT`, `TYPST_EXE`는 [설정 안내](typst-migration.md)를 따른다. 한글 프로그램·COM·레지스트리 보안 모듈은 기본 빌드에 필요하지 않다.
+- 원본 글꼴은 엔진의 `fonts/`에서 읽는다. 해설·정답표도 해당 폴더의 글꼴을 사용한다. 글꼴을 생략하거나 다른 것으로 대체하지 않는다.
+- HTML 자료 그림은 Chrome/Edge headless가 필요하다. `pdftoppm` 또는 PyMuPDF로 PDF를 렌더링해 검수한다.
+- `--no-compile`(`--no-convert`)은 Typst/JSON까지만 만든다. 이 경우 PDF를 검증했다고 보고하지 않는다.
 
 ## 3. 네 종류의 양식을 혼동하지 않는다
 
 ### 문제 본문
 
-`templates/kice-sci/`는 **HWPX를 풀어 둔 디렉터리**다. `Contents/header.xml`에 문자/문단/테두리 정의, `frags/p0.xml`에 첫 문단과 머리글, `Contents/masterpage*.xml`에 바탕쪽이 있다. `examkit/build.py`가 템플릿을 복사한 뒤 머리글 치환과 문항 조립을 한다. `examkit/hwpx.py`의 STYLE/BF 등 ID는 이 템플릿과 한 세트다.
+MD → `examkit/typst_body.py` → `_typst_engine.py` → 외부 원본 서식 엔진 → Typst PDF가 기본 경로다. 본문 틀은 `body_template: science` 또는 `social`, 표시 문구는 MD 메타데이터로 지정한다. `pages: auto`가 자동 배치를 사용한다. 생성된 `.typ`/JSON을 직접 수정하면 다음 빌드에서 덮어써지므로 지속할 내용은 MD에서 수정한다.
 
-내용은 MD를 수정한다. 생성된 `<title>_build/Contents/section0.xml`을 직접 고쳐 납품하면 다음 빌드에서 사라진다. 공통 서식을 고칠 때만 엔진·템플릿과 배치 문서를 함께 수정한다. 다른 템플릿을 도입할 때는 폴더만 복사하면 끝나는 것이 아니라 서식 ID와 머리글 치환도 맞춰야 한다.
+`templates/kice-sci/`, `build.py`, `hwpx.py`, `convert.py`는 이전 HWPX 구현이다. 기본 CLI는 HWPX/한글 변환을 호출하지 않는다. 다른 본문 프로필은 원본 서식과 Markdown 어댑터 양쪽을 연결해야 한다.
 
 ### 교시별 표지
 
-`templates/covers/csat-2017-v2-source.hwpx`가 빌더 입력이다. `.hwp`는 받은 원본, `.pdf`는 비교 원본이다. `tools/build_cover.py`를 사용한다. 성명·수험번호 칸, 안내 상자, 필적 상자, 경고문은 원본 개체를 유지한다. 가형·나형·홀수형·짝수형·단답형 안내를 제거하고, 필적 문구는 **지혜를 모아 지혜를 모아**다. 제목·교시·과목은 MD 메타데이터에서 가져온다.
+표지는 [현재 표지 사용법](cover-format.md)의 국어·수학 원본 기반 Typst 엔진을 사용한다. `EXAMKIT_TYPST_ROOT`와 `TYPST_EXE`를 설정한 후 `tools/build_cover.py`를 실행한다. 옛 2017 HWPX는 보존 자료이며 기본 빌더 입력이 아니다. 문구·영역·배점은 프로젝트 MD에서 지정한다.
 
 원본 크기 PDF와 본문 용지에 균일 축소한 합본은 다르다. [표지 양식](cover-format.md)에 실제 용지·글꼴·치환 규칙이 있다. 합본은 표지 1쪽 + 해당 교시 본문을 반복하며, 본문의 쪽수/쪽번호는 표지를 제외한다.
 
@@ -61,7 +60,7 @@ python -c "import lxml, matplotlib, pymupdf, PIL, win32com.client; print('import
 
 `tools/answer_key.py`는 문항 번호·정답·배점만 담은 **별도의 595×842pt PDF**다. 해설 첫머리의 작은 정답표와 다르다. 현재 20문항용 5행×4묶음이며 더 많은 문항은 코드 확장 없이 쓰지 않는다.
 
-`python -m examkit review`는 정답에 색을 칠한 **검토 전용** PDF다. 맨 앞의 색상 설명 표지는 `review.py`가 그리며, 학생용 HWP 표지와 다르다. `--overlay`도 무색 본문을 한글로 변환한 뒤 색 상자를 얹으므로 **한글 없이 동작하는 기능이 아니다**. `--reuse`는 기존 검토 PDF를 재사용한다. 검토본을 풀이용으로 배포하지 않는다.
+`python -m examkit review`는 정답에 색을 칠한 **검토 전용** PDF다. 맨 앞의 색상 설명 표지는 `review.py`가 그리며, 학생용 Typst 표지와 다르다. `--overlay`는 무색 Typst PDF에 색 상자를 얹는다. 기본 색 글자 검토본과 모두 한글 없이 생성한다. `--reuse`는 기존 검토 PDF를 재사용한다. 검토본을 풀이용으로 배포하지 않는다.
 
 ## 4. 참고 기출 → 삽화 → 글 배치
 
@@ -73,7 +72,7 @@ python -c "import lxml, matplotlib, pymupdf, PIL, win32com.client; print('import
 6. 현재 프로젝트는 API 연결 없이 ChatGPT에서 글자 없는 장면/틀을 생성한다. 파일명은 `assets/illust/<id>.png`. 그래프·지도·조직도처럼 수치·관계가 정답을 좌우하면 코드·편집 가능한 도형으로 만든다. 기존 코드 그림은 `assets/illust/sources/`를 본다.
 7. 완성 PNG를 실제로 열고 확인한다. 인물/좌석/상자 수, 책상과 의자의 비율, 서로 바라보는 방향, 포스터 가로세로비 등이 요청과 맞아야 한다. 자동 생성은 같은 요청만으로 픽셀 단위 재현을 보장하지 않으므로 승인된 PNG를 원본 자산으로 보존한다.
 8. `DELIVERY.md`에 **최종 그림**의 px 크기·빈 판 좌표·삽입 mm를 기록한다. MD의 `textN`·`bubbleN`·`tableN`·`labelN` 좌표는 **삽입 크기 기준 mm**다. `mm = 원본px / 원본폭px × 삽입폭mm`로 환산한다. `w/h`는 HWPUNIT, `crop`과 `cx`는 px다. 단위를 섞지 않는다.
-9. HWPX 글상자·말풍선·표로 정확한 글자를 배치하고 실제 크기로 검토한다. 자세한 문법, 자르기, 가운데 맞춤, 글꼴 ID는 [배치 노트](hwpx-layout-notes.md) 5절을 따른다.
+9. Typst 글상자·말풍선·표로 정확한 글자를 배치하고 실제 크기로 검토한다. 자세한 문법, 자르기, 가운데 맞춤, 글꼴 ID는 [배치 노트](hwpx-layout-notes.md) 5절을 따른다.
 
 ## 5. 검사와 첫 전체 빌드
 
@@ -88,8 +87,8 @@ python tools/build_final.py output/release_20261101_v2 content/1교시.md conten
 
 ```text
 output/release_20261101_v2/
-  _build/1/ ... _build/4/    표지 없는 각 교시 HWPX/HWP/PDF와 작업 파일
-  _covers/                 교시별 편집용 HWPX/HWP/PDF와 원본 크기 표지 합본
+  _build/1/ ... _build/4/    표지 없는 각 교시 Typst/PDF와 조판 JSON
+  _covers/                 교시별 Typst/JSON/PDF와 원본 크기 표지 합본
   원본 문제.pdf             교시별 표지+본문, 정답 표시 없음
   정답표.pdf                교시별 번호·정답·배점
   정답 및 해설.pdf          3단 해설
@@ -102,7 +101,7 @@ output/release_20261101_v2/
 ## 6. 통과 기준 — 성공 메시지만 믿지 않는다
 
 1. `check` 결과에 오류가 없어야 한다. 이 검사는 풀이의 참/거짓·유일성을 검증하지 않는다. 현재 분포 검사는 균등 분포에서 ±1을 허용하므로 인곽의 각 정답4개는 별도 집계한다. 계산·퍼즐은 독립 검산한다.
-2. 교시별 본문 쪽수가 MD `pages`와 같은지 직접 확인한다. `build`는 쪽수 불일치를 경고만 하고 성공 종료할 수 있다. 표지 1쪽, 합본 총합 `sum(pages)+교시 수`를 확인한다.
+2. 숫자 `pages`는 실제 본문 쪽수와 같아야 한다. 불일치하면 빌드가 실패한다. `pages: auto`는 실제 생성 쪽수를 사용한다. 표지 1쪽, 합본 총합 `sum(pages)+교시 수`를 확인한다.
 3. 새 파일 생성 시각과 PDF 텍스트에서 이번 수정 문구를 확인한다. `--reuse` 또는 변환 실패 뒤 남은 옛 파일을 전달하지 않는다.
 4. 전체 PDF를 렌더링한다. 예: `pdftoppm -r 120 -png "output/release_20261101_v2/원본 문제.pdf" output/qa/page` (먼저 `New-Item -ItemType Directory -Force output/qa`로 출력 폴더를 만든다). 바뀐 문항은 `python tools/qcrop.py <본문.pdf> <이미지폴더> 130 4 7 9`처럼 확대 확인한다.
 5. `tools/qpos.py <본문.pdf>`, `colfill.py <본문.pdf>`, `widows.py <본문.pdf>`로 문항 시작·단 여백·외톨이 줄을 점검한다. 이 도구에는 **표지가 없는 교시별 본문 PDF**를 넣는다.
