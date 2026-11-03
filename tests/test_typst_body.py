@@ -46,6 +46,25 @@ class BodyIntegrationTests(unittest.TestCase):
                 lines = [line for block in doc[0].get_text('dict')['blocks'] for line in block.get('lines',[])]
                 numbered = [''.join(span['text'] for span in line['spans']) for line in lines]
                 self.assertTrue(any(re.match(r'1\.\s*빨간', line) for line in numbered))
+            commands=json.loads(target.with_suffix('.assets').joinpath('body-1.json').read_text(encoding='utf-8'))
+            text=[c for c in commands if c['kind']=='text']
+            numbers=[i for i,c in enumerate(text) if c['char'] in ('1','2','3') and c['x']==text[0]['x']]
+            gaps=[];between=[]
+            for n,start in enumerate(numbers):
+                end=numbers[n+1] if n+1<len(numbers) else len(text)
+                group=text[start:end];choice=next(i for i,c in enumerate(group) if c['char']=='①')
+                baseline=max(c['y'] for c in group[:choice] if c['height']==1150)
+                gaps.append(group[choice]['y']-baseline)
+                if n+1<len(numbers):between.append(text[end]['y']-group[choice]['y'])
+            self.assertLess(max(gaps)-min(gaps),.01)
+            self.assertLess(max(between)-min(between),.01)
+            h=next(i for i,c in enumerate(text) if c['char']=='H')
+            letter,sub,oxygen=text[h:h+3]
+            self.assertEqual([letter['char'],sub['char'],oxygen['char']],['H','2','O'])
+            self.assertEqual(sub['font'],letter['font'])
+            self.assertAlmostEqual(sub['height'],letter['height']*.64)
+            self.assertGreater(sub['y'],letter['y'])
+            self.assertLess(sub['advance'],letter['advance'])
 
     def test_default_cli_and_review_without_hancom(self):
         with tempfile.TemporaryDirectory(prefix='.body-test-', dir=ROOT) as folder:

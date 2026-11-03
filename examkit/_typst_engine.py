@@ -27,7 +27,7 @@ from examkit.typst_body import REVIEW_COLORS
 
 ASSETS = Path(request['assets'])
 ROOT = Path(request['root'])
-INLINE = re.compile(r'(\{\{frac\|[^|}]+\|[^}]+\}\}|\$[^$]+\$|__[^_]+__)')
+INLINE = re.compile(r'(\{\{frac\|[^|}]+\|[^}]+\}\}|\$[^$]+\$|__[^_]+__|[₀₁₂₃₄₅₆₇₈₉]+|[⁰¹²³⁴⁵⁶⁷⁸⁹]+)')
 
 
 def resource(path):
@@ -72,6 +72,17 @@ class Engine(Composer):
                 result.extend(super().tokens([run], role, para_shape)); continue
             for part in INLINE.split(run.replace('~', '∼').replace('\u00a0', '\x1e')):
                 if not part: continue
+                if part[0] in '₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹':
+                    from lxml import etree as E
+                    lower=part[0] in '₀₁₂₃₄₅₆₇₈₉'
+                    alphabet='₀₁₂₃₄₅₆₇₈₉' if lower else '⁰¹²³⁴⁵⁶⁷⁸⁹'
+                    cs,ps=self.styles[role];cs=deepcopy(cs)
+                    for tag in ('SUBSCRIPT','SUPERSCRIPT'):
+                        for node in cs.findall(tag):cs.remove(node)
+                    E.SubElement(cs,'SUBSCRIPT' if lower else 'SUPERSCRIPT')
+                    self.styles['@script']=(cs,ps)
+                    result.extend(super().tokens(part.translate(str.maketrans(alphabet,'0123456789')),'@script',para_shape))
+                    continue
                 if part.startswith('$'):
                     size = int(self.styles[role][0].get('Height')) / 100
                     eq = equation(part[1:-1], size, str(ENGINE / 'fonts/HancomEQN.ttf'))
@@ -95,6 +106,9 @@ class Engine(Composer):
                 if underline:
                     for t in tokens: t['underline'] = dict(Type='Bottom', Shape='Solid', Color='0')
                 result.extend(tokens)
+        if role=='number':
+            # A larger number must not change body leading or the gap before choices.
+            for token in result: token['strut_height']=int(self.styles['question'][0].get('Height'))
         return result
 
     @staticmethod
