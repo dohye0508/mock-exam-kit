@@ -49,15 +49,12 @@ class BodyIntegrationTests(unittest.TestCase):
             commands=json.loads(target.with_suffix('.assets').joinpath('body-1.json').read_text(encoding='utf-8'))
             text=[c for c in commands if c['kind']=='text']
             numbers=[i for i,c in enumerate(text) if c['char'] in ('1','2','3') and c['x']==text[0]['x']]
-            gaps=[];between=[]
             for n,start in enumerate(numbers):
                 end=numbers[n+1] if n+1<len(numbers) else len(text)
-                group=text[start:end];choice=next(i for i,c in enumerate(group) if c['char']=='①')
-                baseline=max(c['y'] for c in group[:choice] if c['height']==1150)
-                gaps.append(group[choice]['y']-baseline)
-                if n+1<len(numbers):between.append(text[end]['y']-group[choice]['y'])
-            self.assertLess(max(gaps)-min(gaps),.01)
-            self.assertLess(max(between)-min(between),.01)
+                marks=[c for c in text[start:end] if c['char'] in '①②③④⑤']
+                self.assertEqual(len(marks),5)
+                gaps=[b['x']-a['x'] for a,b in zip(marks,marks[1:])]
+                self.assertLess(max(gaps)-min(gaps),.01)
             h=next(i for i,c in enumerate(text) if c['char']=='H')
             letter,sub,oxygen=text[h:h+3]
             self.assertEqual([letter['char'],sub['char'],oxygen['char']],['H','2','O'])

@@ -106,9 +106,6 @@ class Engine(Composer):
                 if underline:
                     for t in tokens: t['underline'] = dict(Type='Bottom', Shape='Solid', Color='0')
                 result.extend(tokens)
-        if role=='number':
-            # A larger number must not change body leading or the gap before choices.
-            for token in result: token['strut_height']=int(self.styles['question'][0].get('Height'))
         return result
 
     @staticmethod
@@ -302,7 +299,7 @@ def blocks(questions):
             items=q.get('opts',q.get('set'))
             columns=5 if q.get('inline_opts') or all(len(t)<=6 and '$' not in t and '{{' not in t for t in items) else 1
             choices=[marked(text,i) for i,text in enumerate(items)]
-            group.append(dict(kind='choices',items=[[t] if isinstance(t,dict) else t for t in choices],columns=columns))
+            group.append(dict(kind='choices',items=[[t] if isinstance(t,dict) else t for t in choices],columns=columns,equal_columns=columns==5))
         for b in group:b['keep_with_next']=True;b.setdefault('after_mm',1)
         group[-1]['keep_with_next']=False;group[-1]['after_mm']=q['gap']*4
         result.extend(group)
