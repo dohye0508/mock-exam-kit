@@ -55,6 +55,9 @@ class BodyIntegrationTests(unittest.TestCase):
                 self.assertEqual(len(marks),5)
                 gaps=[b['x']-a['x'] for a,b in zip(marks,marks[1:])]
                 self.assertLess(max(gaps)-min(gaps),.01)
+                # Original HWP choice table: 1391-unit marker + 4787-unit content cells.
+                self.assertAlmostEqual(gaps[0],6178,delta=1)
+                self.assertAlmostEqual(marks[0]['x']/100,64.32,delta=.05)
             h=next(i for i,c in enumerate(text) if c['char']=='H')
             letter,sub,oxygen=text[h:h+3]
             self.assertEqual([letter['char'],sub['char'],oxygen['char']],['H','2','O'])

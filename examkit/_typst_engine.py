@@ -299,7 +299,15 @@ def blocks(questions):
             items=q.get('opts',q.get('set'))
             columns=5 if q.get('inline_opts') or all(len(t)<=6 and '$' not in t and '{{' not in t for t in items) else 1
             choices=[marked(text,i) for i,text in enumerate(items)]
-            group.append(dict(kind='choices',items=[[t] if isinstance(t,dict) else t for t in choices],columns=columns,equal_columns=columns==5))
+            if columns==5:
+                cells={}
+                for i,item in enumerate(choices):
+                    label=marked(chr(0x2460+i),i)
+                    cells[f'0,{i*2}']=[label] if isinstance(label,dict) else label
+                    cells[f'0,{i*2+1}']=[item] if isinstance(item,dict) else item
+                group.append(dict(kind='table',table_template=13 if request['profile']=='science' else 12,cells=cells))
+            else:
+                group.append(dict(kind='choices',items=[[t] if isinstance(t,dict) else t for t in choices],columns=columns))
         for b in group:b['keep_with_next']=True;b.setdefault('after_mm',1)
         group[-1]['keep_with_next']=False;group[-1]['after_mm']=q['gap']*4
         result.extend(group)
