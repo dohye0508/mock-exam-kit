@@ -83,7 +83,37 @@ def convert(hwpx_path, hwp_out=None, pdf_out=None, timeout=TIMEOUT):
         lock.close()
     if r.returncode != 0:
         raise RuntimeError("한글 변환 실패: %s\n%s" % (hwpx_path, r.stderr.strip()[-800:]))
-    return json.loads(r.stdout.strip().splitlines()[-1])
+    result = json.loads(r.stdout.strip().splitlines()[-1])
+    if pdf_out and result.get("pdf"):
+        _fix_pdf_size(hwpx_path, pdf_out)
+    return result
+
+def _fix_pdf_size(hwpx_path, pdf_path):
+    """한글의 인쇄 용지 설정(예: B4 '용지에 맞춤')이 PDF 저장에 끼어들면 쪽 전체가 줄어든다.
+    문서 용지(HWPX pagePr) 크기와 다르면 왼쪽 위 기준으로 다시 키워 원래 용지 크기로 되돌린다."""
+    import re, zipfile
+    import pymupdf as fitz
+    with zipfile.ZipFile(hwpx_path) as z:
+        m = re.search(rb'<hp:pagePr[^>]*?width="(\d+)" height="(\d+)"', z.read("Contents/section0.xml"))
+    if not m:
+        return
+    w, h = int(m.group(1)) / 100, int(m.group(2)) / 100      # HWPUNIT → pt
+    src = fitz.open(pdf_path)
+    r = src[0].rect
+    if abs(r.width - w) < 1 and abs(r.height - h) < 1:
+        src.close()
+        return
+    s = min(r.width / w, r.height / h)                         # 한글이 줄인 배율
+    out = fitz.open()
+    for i in range(src.page_count):
+        page = out.new_page(width=w, height=h)
+        page.show_pdf_page(page.rect, src, i, clip=fitz.Rect(0, 0, w * s, h * s))
+    src.close()
+    tmp = pdf_path + ".tmp"
+    out.save(tmp, garbage=3, deflate=True)
+    out.close()
+    os.replace(tmp, pdf_path)
+
 
 
 if __name__ == "__main__":
