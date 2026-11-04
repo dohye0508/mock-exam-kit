@@ -35,6 +35,84 @@ class EquationTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('EXAMKIT_TYPST_ROOT') and os.environ.get('TYPST_EXE'), 'Configured Typst engine required')
 class BodyIntegrationTests(unittest.TestCase):
+    def test_question_and_example_styles_match_native_reference(self):
+        from examkit.parse_md import parse
+        from examkit.typst_body import build
+        source='''---
+title: 서식 대조
+year: 2026학년도
+exam: 원본 대조
+period: 제1교시
+area: 과학탐구
+subject: 배치 확인
+pages: auto
+question_spacing: compact
+count: 2
+three: 0
+---
+## 1.
+다음은 어느 학교의 하루 일과 중 일부를 나타낸 자료이다.
+::: box
+◦ 오전에는 도서관에서 자료를 조사한다.
+◦ 오후에는 모둠별로 조사한 내용을 정리한다.
+◦ 정리한 자료는 발표 시간에 함께 확인한다.
+:::
+? 이에 대한 설명으로 옳은 것만을 <보기>에서 있는 대로 고른 것은?
+::: bogi
+ㄱ. 오전에는 A 자료를 조사하고 조사한 내용을 모둠원에게 설명한다. 자료에서 확인한 내용을 바탕으로 의견을 정리한다.
+ㄴ. 오후에는 내용을 정리한다.
+ㄷ. 발표 시간에 자료를 확인한다.
+:::
+@set A
+@answer 3
+## 2.
+다음은 간격과 줄바꿈을 확인하기 위한 두 번째 문항이다.
+? 자료에서 확인할 수 있는 내용에 대한 설명으로 옳은 것을 고른 것은? (단, 주어진 자료만을 이용하여 판단한다.)
+① 첫째
+② 둘째
+③ 셋째
+④ 넷째
+⑤ 다섯째
+@answer 2
+'''
+        meta,questions=parse(source)
+        # Measured from Hancom PDFs using the same text in the original source styles.
+        native={
+            'science': [('이에대한',74.64,305.051),('것은?',64.32,321.119),
+                        ('ㄱ.',72.84,361.409),('설명한다.',91.8,377.956),
+                        ('ㄴ.',72.84,414.049),('자료에서확인할',74.64,508.298)],
+            'social': [('이에대한',75.6,296.058),('것은?',64.32,312.126),
+                       ('ㄱ.',72.72,353.375),('설명한다.',72.72,369.563),
+                       ('ㄴ.',72.72,385.631),('자료에서확인할',75.6,468.488)],
+        }
+        with tempfile.TemporaryDirectory(dir=ROOT) as folder:
+            for profile,anchors in native.items():
+                with self.subTest(profile=profile):
+                    target=Path(folder)/f'{profile}.pdf'
+                    build(meta|{'body_template':profile},questions,target)
+                    with pymupdf.open(target) as doc:
+                        lines=[line for b in doc[0].get_text('dict')['blocks'] for line in b.get('lines',[])]
+                    for prefix,x,y in anchors:
+                        line=next(l for l in lines if ''.join(s['text'] for s in l['spans']).replace(' ','').startswith(prefix))
+                        actual=line['spans'][0]['origin']
+                        self.assertAlmostEqual(actual[0],x,delta=.12)
+                        self.assertAlmostEqual(actual[1],y,delta=.5)
+                    body=json.loads(target.with_suffix('.assets').joinpath('body-1.json').read_text(encoding='utf-8'))
+                    first=next(c for c in body if c.get('char')=='오' and abs(c['y']/100-anchors[2][2])<.5)
+                    second=next(c for c in body if c.get('char')=='오' and abs(c['y']/100-anchors[4][2])<.5)
+                    self.assertAlmostEqual(second['advance']-first['advance'],24 if profile=='science' else 0,places=4)
+                    # A source-shaped run must still parse subscripts, equations, and underlines.
+                    _,inline_questions=parse(source)
+                    inline_questions[0]['bogi'][1]='H₂O와 $x^2$를 __확인__한다.'
+                    special=Path(folder)/f'{profile}-inline.pdf'
+                    build(meta|{'body_template':profile},inline_questions,special)
+                    commands=json.loads(special.with_suffix('.assets').joinpath('body-1.json').read_text(encoding='utf-8'))
+                    text=[c for c in commands if c['kind']=='text'];i=next(i for i,c in enumerate(text) if c['char']=='H')
+                    self.assertEqual([c['char'] for c in text[i:i+3]],['H','2','O'])
+                    self.assertAlmostEqual(text[i+1]['height'],text[i]['height']*.64)
+                    self.assertTrue(any(c.get('font')=='HancomEQN' for c in text))
+                    self.assertTrue(any(c.get('decoration')=='underline' for c in commands))
+
     def test_prompt_only_question_keeps_number_on_same_line(self):
         from examkit.parse_md import parse
         from examkit.typst_body import build

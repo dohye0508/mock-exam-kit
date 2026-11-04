@@ -37,6 +37,7 @@ def resource(path):
 class Engine(Composer):
     def __init__(self, subject):
         super().__init__(subject)
+        self.styles['ask']=self.styles['02-문제(2행)' if subject=='science' else '문제 아래 - 일반']
         if subject=='science':
             self.styles['@blank']=(self.root.find('.//CHARSHAPE[@Id="119"]'),self.root.find('.//PARASHAPE[@Id="98"]'))
         else:self.styles['@blank']=self.styles['choices']
@@ -96,13 +97,19 @@ class Engine(Composer):
         if isinstance(runs, str): runs = [runs]
         result = []
         for run in runs:
-            if isinstance(run, dict) and 'styled' in run:
+            if isinstance(run, dict) and ('styled' in run or 'text' in run):
+                content=run['styled'] if 'styled' in run else run['text']
+                if 'text' in run and not content:
+                    result.extend(super().tokens([run],role,para_shape));continue
                 if 'char_shape' in run:
                     previous = self.styles[role]
-                    self.styles[role] = (self.original_charshape(run['char_shape']), previous[1])
-                    try: tokens = self.tokens(run['styled'], role, para_shape)
+                    shape=(self.original_charshape(run['char_shape']) if 'styled' in run
+                           else self.root.find(f'.//CHARSHAPE[@Id="{int(run["char_shape"])}"]'))
+                    if shape is None:raise ValueError(f'없는 원본 글자 모양: {run["char_shape"]}')
+                    self.styles[role] = (shape, previous[1])
+                    try: tokens = self.tokens(content, role, para_shape)
                     finally: self.styles[role] = previous
-                else: tokens = self.tokens(run['styled'], role, para_shape)
+                else: tokens = self.tokens(content, role, para_shape)
                 for token in tokens:
                     if 'color' in run:
                         token['color'] = run['color']
@@ -138,6 +145,21 @@ class Engine(Composer):
                     for t in tokens: t['underline'] = dict(Type='Bottom', Shape='Solid', Color='0')
                 result.extend(tokens)
         return result
+
+    def source_example(self, block, x, y, width):
+        table=self.root.findall('./BODY/SECTION//TABLE')[12 if self.subject=='science' else 11]
+        body=next(c for c in table.findall('ROW/CELL') if c.get('ColSpan')=='3')
+        prototypes=body.findall('PARALIST/P');items=[]
+        for i,item in enumerate(block['items']):
+            prefix=re.match(r'^[ㄱ-ㅎ]\.\s*',item) if isinstance(item,str) else None
+            if prefix is None:items.append(item);continue
+            p=prototypes[min(i,len(prototypes)-1)]
+            source=[(ch,int(t.get('CharShape'))) for t in p.findall('TEXT') for c in t.findall('CHAR') for ch in chars(c)]
+            original_prefix=re.match(r'^[ㄱ-ㅎ]\.\s*',''.join(ch for ch,_ in source))
+            assert original_prefix is not None, 'Original example paragraph must begin with its label'
+            body_shape=source[len(original_prefix[0])][1]
+            items.append([dict(text=prefix[0],char_shape=source[0][1]),dict(text=item[len(prefix[0]):],char_shape=body_shape)])
+        return super().source_example(block|dict(items=items),x,y,width)
 
     def fraction(self, numerator, denominator):
         from extract_body_fixture import Body
@@ -383,7 +405,7 @@ def blocks(questions):
             elif kind=='text':block=dict(runs=payload,style='question')
             else:raise ValueError('지원하지 않는 문항 블록: '+kind)
             group.append(block)
-        if not only_prompt: group.append(dict(runs=ask,style='question'))
+        if not only_prompt: group.append(dict(runs=('  ' if request['profile']=='science' else '')+ask,style='ask'))
         color=REVIEW_COLORS[q.get('status','keep')] if request['review'] else None
         def marked(text,index):return dict(styled=text,color=color) if color and index==q['answer']-1 else text
         if 'bogi' in q:
