@@ -20,7 +20,7 @@ class EquationTests(unittest.TestCase):
         self.assertIn(r'\frac', latex('{{a} over {b}} over {c}'))
         self.assertEqual(latex(r'\frac{x^2}{\sqrt{y}}'), r'\frac{x^2}{\sqrt{y}}')
         with self.assertRaises(ValueError): latex('{a')
-        with self.assertRaises(ValueError): latex('matrix {a}')
+        self.assertEqual(latex('matrix {a&b#c&d}'),r'\begin{matrix}a&b\\c&d\end{matrix}')
 
     @unittest.skipUnless(os.environ.get('EXAMKIT_TYPST_ROOT'), 'Original fonts required')
     def test_new_equations_use_only_original_face(self):

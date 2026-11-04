@@ -21,6 +21,7 @@ BODY_AFTER_GRID = 25.1
 TOP, BOTTOM = 169.966,1068.493
 FONT_DIR = Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts'
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
 
 
 def font_paths():

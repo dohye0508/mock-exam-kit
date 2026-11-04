@@ -20,6 +20,18 @@ def latex(expression):
     if depth: raise ValueError('수식 중괄호가 맞지 않습니다.')
     result = ''; i = 0
     while i < len(expression):
+        grid=re.match(r'(matrix|cases)\s*\{',expression[i:]) if i==0 or not expression[i-1].isalpha() else None
+        if grid is None and (i==0 or not expression[i-1].isalpha()) and re.match(r'(matrix|cases)\b',expression[i:]):
+            raise ValueError('matrix/cases의 내용은 중괄호로 감싸 주세요.')
+        if grid:
+            from .math_grids import rows
+            start=i+grid.end();end=start;depth=1
+            while depth:
+                depth+=(expression[end]=='{')-(expression[end]=='}');end+=1
+            cells=rows(expression[start:end-1],separator='#')
+            name=grid[1]
+            result+=r'\begin{'+name+'}'+r'\\'.join('&'.join(latex(c) if c else '' for c in row) for row in cells)+r'\end{'+name+'}'
+            i=end;continue
         if expression[i] == '{':
             end = i+1; depth = 1
             while depth:
@@ -27,10 +39,10 @@ def latex(expression):
             result += '{' + latex(expression[i+1:end-1]) + '}'; i = end
         else:
             result += expression[i]; i += 1
-    if re.search(r'\b(matrix|pile|cases|atop|binom)\b', result):
+    if re.search(r'\b(pile|atop|binom)\b', result):
         raise ValueError('이 한글 수식 명령은 LaTeX로 작성해 주세요: ' + expression)
     words = 'sqrt sum prod int lim sin cos tan log ln exp alpha beta gamma delta epsilon theta lambda mu pi rho sigma phi omega infinity times div leq geq neq cdot'.split()
-    result = re.sub(r'\b(' + '|'.join(words) + r')\b', lambda m: '\\' + ('infty' if m[0] == 'infinity' else m[0]), result)
+    result = re.sub(r'(?<!\\)\b(' + '|'.join(words) + r')\b', lambda m: '\\' + ('infty' if m[0] == 'infinity' else m[0]), result)
     result = re.sub(r'\bLEFT\b', r'\\left', result)
     result = re.sub(r'\bRIGHT\b', r'\\right', result)
     for word, command in [('rm', 'mathrm'), ('it', 'mathit'), ('bold', 'mathbf')]:
@@ -44,7 +56,7 @@ def equation(expression, size, font_path):
     import logging
     from matplotlib import font_manager
     from matplotlib.font_manager import FontProperties
-    from matplotlib.mathtext import MathTextParser
+    from .math_grids import math_parser
     from fontTools.ttLib import TTFont
     from pathlib import Path
 
@@ -65,7 +77,7 @@ def equation(expression, size, font_path):
     logger = logging.getLogger('matplotlib'); handler = Warnings(); logger.addHandler(handler)
     try:
         with mpl.rc_context(config):
-            parsed = MathTextParser('path').parse(source, dpi=72, prop=FontProperties(size=size))
+            parsed = math_parser('path',source).parse(source, dpi=72, prop=FontProperties(size=size))
     finally: logger.removeHandler(handler)
     if messages:
         raise ValueError('원본 수식 글꼴로 출력할 수 없습니다: ' + '; '.join(messages))

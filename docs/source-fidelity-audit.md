@@ -18,6 +18,7 @@
 
 - `examkit/_typst_engine.py`: `tokens`의 한글 분수, `source_box`, `data_table`, `overlays`, `source_artwork`, `blocks`.
 - `examkit/native_math.py`: `MathTextParser`를 사용한 새 수식 배치.
+- `examkit/math_grids.py`: 같은 글꼴/괄호 렌더러를 사용하는 행렬·경우 나눔 확장. 열 폭은 실제 셀 폭, 행 높이는 실제 셀 높이와 글자 크기에서 계산한다. 한글 수식 엔진의 배치를 복제한 것은 아니다. Matplotlib 내부 박스 API를 사용하므로 라이브러리 갱신 시 행렬 회귀 검사를 실행해야 한다.
 - `examkit/cover.py`: 표지 문단 교체와 외부 원본 표지 엔진 호출.
 - 외부 엔진 `scripts/compose.py`: `STYLE_IDS`, `page_geometry`, `source_box`, `source_example`, `source_table`.
 

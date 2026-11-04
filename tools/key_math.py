@@ -37,7 +37,7 @@ def render_math(expression, display, directory):
     """
     import matplotlib as mpl
     from matplotlib.font_manager import FontProperties
-    from matplotlib.mathtext import MathTextParser, math_to_image
+    from matplotlib.mathtext import math_to_image
     from PIL import Image
 
     expression = expression.strip()
@@ -48,18 +48,26 @@ def render_math(expression, display, directory):
         expression = re.sub(alias, name, expression)
     if re.search(r'\\text\{[^}]*[가-힣]', expression):
         raise ValueError('수식 안 한글(\\text{초} 등)은 글리프가 없습니다. 단위는 수식 밖 본문에 쓰세요: ' + expression)
-    from examkit.native_math import equation
+    from examkit.native_math import equation, latex
+    from examkit.math_grids import ENVIRONMENT, math_parser
     from examkit.typst_runtime import engine_root
+    expression=latex(expression)
     equation(expression, MATH_SIZE, str(engine_root() / 'fonts/HancomEQN.ttf'))
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
-    key = ('hancom-eqn-no-fallback-v3', expression, bool(display), MATH_SIZE, MATH_DPI)
+    key = ('hancom-eqn-no-fallback-v4', expression, bool(display), MATH_SIZE, MATH_DPI)
     filename = 'math-' + hashlib.sha256(repr(key).encode()).hexdigest()[:20] + '.png'
     path = directory / filename
     with mpl.rc_context(_font_config()):
         prop = FontProperties(size=MATH_SIZE, weight='normal', math_fontfamily='custom')
         source = '$' + re.sub(r'\\frac\b', r'\\dfrac', expression) + '$'
-        metrics = MathTextParser('path').parse(source, dpi=72, prop=prop)
+        metrics = math_parser('path',source).parse(source, dpi=72, prop=prop)
+        if ENVIRONMENT.search(source):
+            import numpy as np
+            raster=math_parser('agg',source).parse(source,dpi=MATH_DPI,prop=prop)
+            if not path.is_file():Image.fromarray(255-np.asarray(raster.image)).save(path)
+            with Image.open(path) as image:width,height=(value*72/MATH_DPI for value in image.size)
+            return width,height,float(raster.depth)*72/MATH_DPI,filename
         if not path.is_file():
             math_to_image(source, path, prop=prop, format='png', dpi=MATH_DPI,
                           color='black')
