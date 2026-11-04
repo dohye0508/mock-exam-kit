@@ -6,13 +6,13 @@
 
 | 단계 | AI가 할 일 | 저장소 도구/필요 조건 |
 |---|---|---|
-| 환경 확인 | 파일 읽기·쓰기, 명령 실행, 웹 조사, 이미지 생성 기능 확인 | README/AGENTS 읽기, Python·글꼴·한글 COM 확인 |
+| 환경 확인 | 파일 읽기·쓰기, 명령 실행, 웹 조사, 이미지 생성 기능 확인 | README/AGENTS 읽기, Python·로컬 글꼴·Typst와 저장소 runtime 확인 |
 | 설정 | 대상·주제·문항 수·과목·필적 문구 정하기 | docs/project-template.md의 프로젝트 문서와 MD 메타데이터 |
 | 문항/해설 | 사실 조사, 문제·선택지·정답·풀이 작성, 독립 검산 | content/N교시.md 및 N교시_해설.md. check는 사실/유일성 검증을 대신하지 않음 |
 | 삽화 | 필요한 그림 유형 선정, 실제 사용 가능한 생성기로 생성·확인 | assets/illust/ PNG; Nano Banana 등 어떤 생성기든 같은 납품 조건 |
 | 도표 | 값·좌표·연결 관계를 코드로 정확히 작성 | 기존 figures/materials 또는 코드 도식 |
-| 편집 | 그림 크기·글상자·표·수식 조절 | 기존 MD/HWPX 문법과 배치 도구 |
-| 완성 | 교시별 표지와 본문, 정답표, 해설 조립 | tools/build_final.py; 전체 문제지 PDF는 Windows+한글 COM 필요 |
+| 편집 | 그림 크기·글상자·표·수식 조절 | 기존 MD 문법과 Typst 배치 도구 |
+| 완성 | 교시별 표지와 본문, 정답표, 해설 조립 | tools/build_final.py; 본문·표지 모두 구성된 Typst 엔진 필요 |
 | 검수 | 모든 쪽 렌더링, 메타데이터·답·잘림·분수 가독성 대조 | docs/reproduction-guide.md 및 서식별 문서 |
 
 모델의 이름·구독 여부만으로 이미지 생성 또는 PC 실행 권한이 있다고 판단하지 않는다. 저장소에는 이미지 생성 API 자동 연결기가 없다. 생성 도구가 이미 사용 가능하면 직접 만들고, 없다면 요청서 작성과 가능한 문서 작업을 진행하고 누가 무엇을 이어 해야 하는지 남긴다. 새 유료 연결·자격증명 설정은 해당 환경의 권한 규칙을 따른다.
@@ -31,7 +31,7 @@ python -m examkit check content/1교시.md
 python tools/build_final.py output/my-exam content/1교시.md
 ```
 
-출력은 `원본 문제.pdf`(표지 포함), `정답표.pdf`, `정답 및 해설.pdf`이다. 한글 없는 환경에서는 문제 본문/표지를 `--no-convert`로 HWPX까지 만들 수 있다. 완성 PDF를 만들지 못했다면 그 상태를 분명히 기록한다. 해설 PDF는 별도 build_key.py로 생성할 수 있지만 지정 글꼴은 필요하다.
+출력은 `원본 문제.pdf`(표지 포함), `정답표.pdf`, `정답 및 해설.pdf`이다. 본문과 표지는 한글 없이 구성된 Typst 엔진으로 PDF까지 생성한다([설정](cover-format.md)). 완성 PDF를 만들지 못했다면 그 상태를 분명히 기록한다. 해설 PDF는 별도 build_key.py로 생성할 수 있지만 지정 글꼴은 필요하다.
 
 현재 프리셋은 5지선다·2/3점·20문항 중심이다. 새 주제의 퀴즈는 이 체계로 작성할 수 있지만 단답형·다른 배점·다른 용지까지 자동 지원된다고 말하지 않는다. 체계를 바꾸면 검증기·정답표·표지 안내도 함께 수정해야 한다.
 
@@ -39,6 +39,6 @@ python tools/build_final.py output/my-exam content/1교시.md
 
 Gemini CLI는 기본적으로 GEMINI.md를 읽는다. 이 저장소의 GEMINI.md는 `@./AGENTS.md`로 공통 지침을 가져온다. CLI의 메모리 표시로 로드 여부를 확인한다. 다른 채팅 앱이나 IDE에서는 자동 로드를 가정하지 말고 파일을 실제로 읽었는지 확인한다.
 
-Nano Banana는 그림 생성 기능이다. 그림 생성과 저장소 파일 편집·Python 실행·한글 변환은 각각 별도 능력이다. 이 기능들이 함께 제공된 환경이면 전 과정을 이어 실행할 수 있다. 일반 채팅에서 저장소 링크와 한 줄 요청만 주는 것으로 로컬 HWP/PDF 작업까지 보장되지는 않는다.
+Nano Banana는 그림 생성 기능이다. 그림 생성과 저장소 파일 편집·Python 실행·Typst 컴파일은 각각 별도 능력이다. 이 기능들이 함께 제공된 환경이면 전 과정을 이어 실행할 수 있다. 일반 채팅에서 저장소 링크와 한 줄 요청만 주는 것으로 로컬 PDF 작업까지 보장되지는 않는다.
 
 공식 참고(제품별 설정은 바뀔 수 있음): [Gemini CLI 문맥 파일](https://geminicli.com/docs/cli/gemini-md/), [Gemini 이미지 생성](https://ai.google.dev/gemini-api/docs/image-generation).

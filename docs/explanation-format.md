@@ -28,8 +28,8 @@
 
 ## 글꼴
 
-- Windows Fonts의 `H2HDRM.TTF`, `H2MJRE.TTF`, `H2GTRE.TTF`를 쓴다.
-- 한컴 바탕은 Windows Fonts 또는 한컴 설치 폴더의 `Shared/TTF/All/HBATANG.TTF`에서 찾는다.
+- `EXAMKIT_TYPST_ROOT/fonts`의 `H2HDRM.TTF`, `H2MJRE.TTF`, `H2GTRE.TTF`를 쓴다.
+- 한컴 바탕은 엔진의 `HBATANG-native-fallback.ttf`에서 읽는다. 엔진 설정이 없는 독립 실행의 기존 Windows 글꼴 검색은 남아 있다.
 - 함초롬바탕(`HANBatang.ttf`)은 다른 글꼴이다. 조용히 대체하지 않고, 필요한 글꼴이 없으면 빌드를 중단한다.
 - 글꼴 파일이나 참고 PDF 원본을 저장소에 복사하지 않는다.
 
@@ -53,7 +53,7 @@ python tools/build_key.py '정답 및 해설.pdf' content/1교시.md content/2�
 
 - **단순 사칙연산과 숫자 단독 표기는 본문으로 쓴다.** 예: `51 + 4 = 55명`, `31 × 16 = 496회`. 모든 계산을 수식 이미지로 바꾸지 않는다.
 - 분수·첨자·근호·합 기호·변수식에 LaTeX를 쓴다. 예: `$\frac{a}{b}$`, `$a_n$`, `$\sum_{k=1}^{n} a_k$`. 화학식·단위는 `\mathrm{}`로 세운다. 긴 계산은 뜻이 분명한 단계로 나누고 각 식을 본문 왼쪽에 맞춘다.
-- 수식 크기·분수·식 배치는 사용자가 추가 제공한 `2026고1-10월수학정답해설.pdf`를 참고했다. 원본 주요 수식은 HyhwpEQ 9pt, 본문은 한컴 바탕 8.76pt이다. 현재 해설 렌더러는 직립 문자·숫자에 HyhwpEQ Regular 9pt, 변수에 Times New Roman Italic, 없는 기호에 STIX Regular를 쓴다. 한컴 네이티브 수식 엔진과 완전히 같지는 않다. 실제 인쇄 크기의 가독성을 위해 현재 프리셋은 `\frac`도 `\dfrac`로 조판하여 분자·분모를 9pt로 확보한다. 주변 수식의 크기·일반 굵기는 유지한다.
+- 수식 크기·분수·식 배치는 사용자가 추가 제공한 `2026고1-10월수학정답해설.pdf`를 참고했다. 원본 주요 수식은 HyhwpEQ 9pt, 본문은 한컴 바탕 8.76pt이다. 현재 해설 렌더러는 원본 HancomEQN 글꼴을 사용한다. 다른 수식 글꼴로 대체하지 않으며 미지원 글리프는 오류다. 한컴 네이티브 수식 엔진과 완전히 같지는 않다. 실제 인쇄 크기의 가독성을 위해 현재 프리셋은 `\frac`도 `\dfrac`로 조판하여 분자·분모를 9pt로 확보한다. 주변 수식의 크기·일반 굵기는 유지한다.
 
 - 비교, 경우의 수 분류, 일정·수치 정리는 작은 표로 보여 줄 수 있다. 글보다 이해하기 쉬울 때 사용하고, 같은 내용을 표와 문장으로 길게 반복하지 않는다.
 - 필요하면 `assets/illust/`의 **해당 문제에 사용한 기존 삽화·도식**을 재사용한다. 풀이에 필요한 부분을 확대하거나 별도 사본에 화살표·번호·보조선을 얹어 설명한다. 원본 PNG는 보존하며, 문서에서 얹었던 글자·조건이 설명에 필요하면 함께 재현한다. 장식만을 위한 그림은 넣지 않는다.
@@ -64,12 +64,13 @@ python tools/build_key.py '정답 및 해설.pdf' content/1교시.md content/2�
 - 단일 화학식(예: `$\mathrm{Fe}^{3+}$`, `$\mathrm{AgNO}_3$`)은 본문 글꼴과 `sup/sub`로 조판해 불필요한 이미지 간격을 없앤다. 반응식·계산식은 수식 렌더러를 쓴다.
 - `$…$`: 인라인 수식. `$$…$$`: 빈 줄로 구분한 독립 수식 문단. 여러 줄 계산은 별도 문단으로 나눈다.
 - Matplotlib MathText의 LaTeX 부분집합을 사용한다. `\frac`, `\dfrac`, `\sqrt`, `\sum`, `^`, `_`, `\mathrm`, `\left`, `\right` 등을 지원한다. 완전한 TeX 엔진은 아니며 `align`·`array` 등 미지원 환경을 그대로 넣지 않는다.
+- 행렬·경우 나눔은 본문과 같은 `examkit/math_grids.py`를 사용한다. `matrix`, `pmatrix`, `bmatrix`, `Bmatrix`, `vmatrix`, `Vmatrix`, `cases`의 `\begin{…}…\end{…}` 형식과 한글식 `matrix {a&b#c&d}`, `cases {x&x>0#-x&x<0}`를 지원한다. 원본 HancomEQN 글꼴 검사 후 600dpi로 렌더링하며, 행 높이는 가장 큰 셀에 맞추고 수식 축에 세로 중심을 맞춘다. 분수 안의 행렬과 중첩 행렬도 가능하다.
 - `tools/key_math.py`에서 일반 굵기 9pt, 흑백 600dpi PNG로 만들고 실제 PNG 크기를 pt로 변환하여 비율 왜곡 없이 삽입한다. 분수의 분자·분모는 `\dfrac` 처리로 9pt를 확보한다. 단순 계산을 새 수식으로 바꾸거나 전체 수식 크기를 키우지는 않는다. 큰 첨자·분수가 있는 **줄만** span 행 높이로 확장한다. 문단 전체를 넓히지 않는다. 독립식은 이미지 높이+2pt 행간만 적용해 inline span과 padding을 중복해서 늘리지 않는다. 표 안 수식 이미지는 세로중앙에 맞춘다. 수식만 있는 셀 중 높이10pt를 넘는 분수는 span을 걷어내고 실측 기준선 보정(`6.5−이미지높이/2`pt), 행간 `max(11.8, 이미지높이+4)`pt를 사용한다. 이 값은 한컴바탕8.76pt 표에 한정한다. Story의 middle 키워드나 block+auto 여백으로 바꾸면 분수가 처지거나 잘릴 수 있으므로 최종 표를 확대 확인한다. 수식 폭이 단 폭을 넘거나 문법이 잘못되면 실패한다. 글자를 줄여 억지로 맞추지 않는다.
 - Markdown 표는 셀 수를 확인하고 `tools/key_tables.py`가 본문·수식의 실제 글폭으로 열 폭을 배분한다. 표 셀에서도 인라인 수식과 `<br>`를 쓸 수 있다. 짧은 머리글은 한 줄을 우선하며, 글자를 작게 줄여 끼워 넣지 않는다.
 - **표 실측:** 과탐 해설 2쪽 23번 표는 외곽·내부 선 모두 0.36pt, 무음영 흰 바탕, 한컴 바탕 8.76pt 일반 굵기이다. 행 높이는 11.755~13.314pt. 기본 행간11.8pt, 상하padding0, 좌우1.5pt, 세로중앙으로 구현한다. 수식/긴 문장이 있는 행만 높이를 늘린다. 문제표 템플릿의 BF.table=3 역시 0.12mm(약0.34pt) 가는 선·무음영 계열이다.
 - `![설명](assets/illust/파일.png)`는 별도 문단으로 쓴다. 저장소 안 실제 파일만 허용하며 원본을 보존한 채 흰 배경·흑백·원본 비율로 삽입한다. 설명은 그림 아래 캡션이다.
 - 한 문항 해설을 통째로 다음 단으로 넘겨 제목/본문 분리와 끝줄 누락을 막는다. 한 단보다 긴 해설은 자동 잘림 대신 실패하므로 내용을 나누는 방법부터 검토한다.
-- 의존성: PyMuPDF, Matplotlib, Pillow와 위 한컴 본문 글꼴 및 `HYHWPEQ.TTF`, `times.ttf`, `timesi.ttf`, `timesbd.ttf`. 한글 COM이나 외부 이미지 API는 사용하지 않는다. 문제 본문의 `hwpx.latex_to_hwp`와 별개다.
+- 의존성: PyMuPDF, Matplotlib, Pillow와 위 한컴 본문 글꼴 및 `HancomEQN.ttf`. 한글 COM이나 외부 이미지 API는 사용하지 않는다. 본문과 같은 원본 수식 글꼴을 사용한다.
 - PDF에서 `$…$`, `\frac`, Markdown 이미지 문법이 평문으로 남지 않는지 확인한다. 수식 이미지는 일반 텍스트 추출로 내용이 검증되지 않으므로 원문 수식 파싱과 렌더링을 함께 확인한다. 표의 마지막 열, 아래첨자, 분수선, 그림 기호를 모든 쪽에서 살핀다.
 
 ## 다음 작업자가 그대로 재사용할 것
@@ -86,7 +87,7 @@ python tools/build_key.py '정답 및 해설.pdf' content/1교시.md content/2�
 
 ```powershell
 python tools/build_key.py output/format-demo.pdf docs/examples/format-demo.md
-python tools/build_cover.py output/format-cover --no-convert docs/examples/format-demo.md
+python tools/build_cover.py output/format-cover --no-compile docs/examples/format-demo.md
 ```
 
 미리보기 PNG는 이 중립 예시에서 다시 생성한다. 주제별 실제 문항과 학생·학교 정보는 메인 브랜치의 검증 예시에 복사하지 않는다.

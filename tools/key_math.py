@@ -1,8 +1,6 @@
 """Regular-weight math assets for the measured answer/explanation layout.
 
-HyhwpEQ supplies upright letters and numerals, Times New Roman supplies italic
-variables, and STIX supplies symbols absent from the legacy HyhwpEQ Unicode
-map.  This preserves the reference's light 9 pt equation style without
+HancomEQN supplies equation glyphs without a substitute-font fallback.  This preserves the reference's light 9 pt equation style without
 claiming that MathText is the native Hancom equation typesetter.
 """
 from functools import lru_cache
@@ -19,23 +17,15 @@ MATH_DPI = 600
 def _font_config():
     from matplotlib import font_manager
 
-    directory = Path(os.environ.get('WINDIR', 'C:/Windows')) / 'Fonts'
-    for filename in ('HYHWPEQ.TTF', 'times.ttf', 'timesi.ttf', 'timesbd.ttf'):
-        path = directory / filename
-        if not path.is_file():
-            raise FileNotFoundError(f'해설 수식 글꼴이 필요합니다: {path}')
-        font_manager.fontManager.addfont(str(path))
-    return {
-        'mathtext.fontset': 'custom',
-        'mathtext.default': 'it',
-        'mathtext.rm': 'HyhwpEQ',
-        'mathtext.it': 'Times New Roman:italic',
-        'mathtext.bf': 'Times New Roman:bold',
-        'mathtext.sf': 'HyhwpEQ',
-        'mathtext.tt': 'HyhwpEQ',
-        'mathtext.cal': 'STIXGeneral:italic',
-        'mathtext.fallback': 'stix',
-    }
+    from examkit.typst_runtime import engine_root
+    path = engine_root() / 'fonts/HancomEQN.ttf'
+    if not path.is_file(): raise FileNotFoundError(path)
+    font_manager.fontManager.addfont(str(path))
+    pattern = font_manager.FontProperties(fname=str(path)).get_fontconfig_pattern()
+    config = {f'mathtext.{key}': pattern for key in ('rm', 'it', 'bf', 'sf', 'tt', 'cal')}
+    config.update({'mathtext.fontset': 'custom', 'mathtext.default': 'it', 'mathtext.fallback': None})
+    return config
+
 
 
 def render_math(expression, display, directory):
@@ -47,7 +37,7 @@ def render_math(expression, display, directory):
     """
     import matplotlib as mpl
     from matplotlib.font_manager import FontProperties
-    from matplotlib.mathtext import MathTextParser, math_to_image
+    from matplotlib.mathtext import math_to_image
     from PIL import Image
 
     expression = expression.strip()
@@ -58,15 +48,26 @@ def render_math(expression, display, directory):
         expression = re.sub(alias, name, expression)
     if re.search(r'\\text\{[^}]*[가-힣]', expression):
         raise ValueError('수식 안 한글(\\text{초} 등)은 글리프가 없습니다. 단위는 수식 밖 본문에 쓰세요: ' + expression)
+    from examkit.native_math import equation, latex
+    from examkit.math_grids import ENVIRONMENT, math_parser
+    from examkit.typst_runtime import engine_root
+    expression=latex(expression)
+    equation(expression, MATH_SIZE, str(engine_root() / 'fonts/HancomEQN.ttf'))
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
-    key = ('hancom-readable-frac-v2', expression, bool(display), MATH_SIZE, MATH_DPI)
+    key = ('hancom-eqn-no-fallback-v4', expression, bool(display), MATH_SIZE, MATH_DPI)
     filename = 'math-' + hashlib.sha256(repr(key).encode()).hexdigest()[:20] + '.png'
     path = directory / filename
     with mpl.rc_context(_font_config()):
         prop = FontProperties(size=MATH_SIZE, weight='normal', math_fontfamily='custom')
         source = '$' + re.sub(r'\\frac\b', r'\\dfrac', expression) + '$'
-        metrics = MathTextParser('path').parse(source, dpi=72, prop=prop)
+        metrics = math_parser('path',source).parse(source, dpi=72, prop=prop)
+        if ENVIRONMENT.search(source):
+            import numpy as np
+            raster=math_parser('agg',source).parse(source,dpi=MATH_DPI,prop=prop)
+            if not path.is_file():Image.fromarray(255-np.asarray(raster.image)).save(path)
+            with Image.open(path) as image:width,height=(value*72/MATH_DPI for value in image.size)
+            return width,height,float(raster.depth)*72/MATH_DPI,filename
         if not path.is_file():
             math_to_image(source, path, prop=prop, format='png', dpi=MATH_DPI,
                           color='black')

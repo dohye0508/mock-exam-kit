@@ -1,0 +1,98 @@
+{
+  "화법과 작문": {
+    "headers": {
+      "first": "korean-speech-writing-first-header",
+      "even": "korean-speech-writing-even-header",
+      "odd": "korean-speech-writing-odd-header",
+      "last": "korean-speech-writing-last-header"
+    },
+    "footer": "korean-footer",
+    "page_offset": 12,
+    "source_section": 1,
+    "body_top": [
+      22959,
+      22959
+    ],
+    "last_body_top": [
+      15874,
+      15874
+    ],
+    "final_note_imported": true,
+    "last_note": "korean-speech-writing-last-note",
+    "note_top": 96459,
+    "settings": {
+      "page": {
+        "GutterType": "LeftOnly",
+        "Height": "119052",
+        "Landscape": "0",
+        "Width": "84188"
+      },
+      "margins": {
+        "Bottom": "8504",
+        "Footer": "3828",
+        "Gutter": "0",
+        "Header": "0",
+        "Left": "8788",
+        "Right": "8788",
+        "Top": "15874"
+      },
+      "columns": [
+        {
+          "Count": "2",
+          "Layout": "Left",
+          "SameGap": "3120",
+          "SameSize": "true",
+          "Type": "Newspaper"
+        }
+      ]
+    }
+  },
+  "언어와 매체": {
+    "headers": {
+      "first": "korean-language-media-first-header",
+      "even": "korean-language-media-even-header",
+      "odd": "korean-language-media-odd-header",
+      "last": "korean-language-media-last-header"
+    },
+    "footer": "korean-footer",
+    "page_offset": 16,
+    "source_section": 2,
+    "body_top": [
+      22959,
+      22959
+    ],
+    "last_body_top": [
+      15874,
+      15874
+    ],
+    "final_note_imported": true,
+    "last_note": "korean-language-media-last-note",
+    "note_top": 100388,
+    "settings": {
+      "page": {
+        "GutterType": "LeftOnly",
+        "Height": "119052",
+        "Landscape": "0",
+        "Width": "84188"
+      },
+      "margins": {
+        "Bottom": "8504",
+        "Footer": "3828",
+        "Gutter": "0",
+        "Header": "0",
+        "Left": "8788",
+        "Right": "8788",
+        "Top": "15874"
+      },
+      "columns": [
+        {
+          "Count": "2",
+          "Layout": "Left",
+          "SameGap": "3120",
+          "SameSize": "true",
+          "Type": "Newspaper"
+        }
+      ]
+    }
+  }
+}

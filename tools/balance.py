@@ -1,4 +1,4 @@
-"""단마다 남는 아래 여백을 그 단의 문항 사이에 고르게 나눠 준다(평가원 시험지처럼 문항 아래 풀이 공간을 고르게).
+"""기존 HWPX 출력의 단 아래 여백을 문항 사이에 나눠 준다. Typst는 question_spacing 메타데이터를 사용한다.
 빌드한 PDF에서 단별 문항과 남은 여백을 재고, 단의 마지막 문항을 뺀 문항에 {gap=N}(빈 줄 1개 = 약 2.47mm)을 더한다.
   python tools/balance.py "output/fit/2교시 인곽 생활.pdf" content/2교시.md          # 제안만 출력
   python tools/balance.py "output/fit/2교시 인곽 생활.pdf" content/2교시.md --apply  # md에 반영
@@ -6,6 +6,7 @@
 """
 import re
 import sys
+from pathlib import Path
 
 import numpy as np
 import pymupdf
@@ -45,11 +46,14 @@ def columns(pdf):
 
 def main():
     pdf, md = sys.argv[1], sys.argv[2]
+    if Path(pdf).with_suffix('.assets').joinpath('manifest.json').exists():
+        print('Typst 출력은 MD에 question_spacing: auto를 설정해 다시 빌드하세요. 기존 HWPX용 여백 계산은 적용하지 않았습니다.')
+        return
     src = open(md, encoding="utf-8", newline="").read()
     cur = {}
     for m in re.finditer(r"^## (\d+)\.[^\r\n]*", src, re.M):
         g = re.search(r"\{gap=(\d+)\}", m.group(0))
-        cur[int(m.group(1))] = int(g.group(1)) if g else 1
+        cur[int(m.group(1))] = int(g.group(1)) if g else 0
     new = dict(cur)
     for page, side, qs, blank in columns(pdf):
         usable = blank - SAFETY_MM
@@ -65,7 +69,7 @@ def main():
         def fix(m):
             n = int(m.group(1))
             line = re.sub(r"\s*\{gap=\d+\}", "", m.group(0)).rstrip()
-            return line if new[n] == 1 else "%s {gap=%d}" % (line, new[n])
+            return line if new[n] == 0 else "%s {gap=%d}" % (line, new[n])
         src = re.sub(r"^## (\d+)\.[^\r\n]*", fix, src, flags=re.M)
         open(md, "w", encoding="utf-8", newline="").write(src)
         print("반영:", {n: g for n, g in new.items() if g != cur[n]})

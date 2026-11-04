@@ -55,7 +55,7 @@ def _args(s):
 
 
 def parse_question(n, header_rest, body_lines):
-    q = dict(n=n, blocks=[], pb=0, cb=0, gap=1, three=False, head="", ask="", answer=None)
+    q = dict(n=n, blocks=[], pb=0, cb=0, gap=0, three=False, head="", ask="", answer=None)
     rest = header_rest
     if "[3점]" in rest:
         q["three"] = True
@@ -99,6 +99,11 @@ def parse_question(n, header_rest, body_lines):
         elif s.startswith("@inline"):
             # 선택지를 한 줄에 늘어놓는다(글자 수 기준 자동 판정을 넘어설 때)
             q["inline_opts"] = True
+        elif s == '@choices' or s.startswith('@choices '):
+            value = s.partition(' ')[2].strip()
+            if value not in ('auto', '5', '3', '2', '1'):
+                raise ValueError('@choices는 auto, 5, 3, 2, 1 중 하나여야 합니다.')
+            q['choice_columns'] = None if value == 'auto' else int(value)
         elif not q["head"]:
             q["head"] = s
         else:
@@ -113,6 +118,15 @@ def _add_block(q, kind, kv, block):
     block = [b for b in block]
     if kind == "box":
         q["blocks"].append(("box", [b for b in block if b.strip() or True]))
+    elif kind == 'passage':
+        if not any(line.strip() for line in block):raise ValueError('공통 지문이 비어 있습니다.')
+        if 'passage' in q:raise ValueError('한 문항에 공통 지문을 두 번 지정할 수 없습니다.')
+        span=kv.get('range',str(q['n']))
+        if not re.fullmatch(r'\d+(?:[-~]\d+)?',span):raise ValueError('지문 range는 1-3 또는 1처럼 지정하세요.')
+        bounds=[int(x) for x in re.split('[-~]',span)]
+        if bounds[0]!=q['n'] or bounds[-1]<bounds[0]:raise ValueError('지문 범위는 현재 문항에서 시작해야 합니다.')
+        q['passage']=dict(first=bounds[0],last=bounds[-1],items=block,
+                          prompt=kv.get('prompt','다음 글을 읽고 물음에 답하시오.').replace('_',' '))
     elif kind == "code":
         q["blocks"].append(("box", ["[코드]"] + block if kv.get("title", "1") == "1" else block))
     elif kind == "table":
@@ -120,7 +134,7 @@ def _add_block(q, kind, kv, block):
         rows = [r for r in rows if not all(set(c) <= set("-: ") for c in r)]
         widths = [int(x) for x in kv["widths"].split(",")] if "widths" in kv else None
         q["blocks"].append(("table", dict(headers=rows[0], rows=rows[1:], widths=widths,
-                                          row_h=int(kv.get("row_h", 1600)))))
+                                          row_h=int(kv.get("row_h", 0)))))
     elif kind == "figure":
         params = _kv_lines(block)
         q["blocks"].append(("figure", dict(kind=kind_of(kv, params), params=params, kv=kv)))
@@ -181,6 +195,8 @@ def check(meta, questions):
             problems.append("정답 %s 분포 치우침: %s" % (MARKS[k - 1], dict(dist)))
             break
     for q in questions:
+        if 'passage' in q and q['passage']['last']>max(item['n'] for item in questions):
+            problems.append(f'{q["n"]}번 공통 지문 범위가 문항 수를 넘습니다.')
         if q["answer"] is None:
             problems.append("%d번 정답 없음" % q["n"])
         elif q["answer"] not in range(1, 6):

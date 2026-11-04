@@ -8,7 +8,6 @@ import pymupdf as fitz
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from examkit.parse_md import parse, check
 
-FONT = "C:/Windows/Fonts/batang.ttc"     # 평가원 정답표처럼 바탕체
 CIRC = "①②③④⑤"
 
 
@@ -23,9 +22,11 @@ def meta_and_rows(path):
 
 
 def page(doc, meta, rows):
+    from examkit.typst_runtime import engine_root
+    font_path=str(engine_root()/'fonts/Batang-native.ttf')
     pg = doc.new_page(width=595, height=842)
-    pg.insert_font(fontname="bt", fontfile=FONT)
-    font = fitz.Font(fontfile=FONT)
+    pg.insert_font(fontname="bt", fontfile=font_path)
+    font = fitz.Font(fontfile=font_path)
 
     def ct(x, y, t, size):
         pg.insert_text((x - font.text_length(t, fontsize=size) / 2, y), t, fontname="bt", fontsize=size)

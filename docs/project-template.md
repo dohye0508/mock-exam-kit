@@ -48,5 +48,5 @@ issuer: 상식 모의고사 출제팀
 
 ## 4. 환경
 
-- PDF까지 만들려면 Windows + 한컴오피스 한글(COM)이 필요하다. 없으면 `--no-convert`로 HWPX까지만 나오고, 정답표·해설 PDF는 한글 없이도 된다.
+- PDF까지 만들려면 Python·Typst·외부 원본 조판 엔진/글꼴이 필요하다. 한글 프로그램은 필요하지 않다. 설정은 docs/typst-migration.md를 따른다.
 - 글꼴·보안 모듈 등 환경 확인은 [재현 절차](reproduction-guide.md) 2절.

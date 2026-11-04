@@ -1,0 +1,88 @@
+[
+  {
+    "kind": "line",
+    "x": 39570.0,
+    "y": 108208,
+    "width": 0,
+    "height": 2200,
+    "pen": 34.01574803149607,
+    "dash": false,
+    "color": "#000000"
+  },
+  {
+    "kind": "line",
+    "x": 44618.0,
+    "y": 108208,
+    "width": 0,
+    "height": 2200,
+    "pen": 34.01574803149607,
+    "dash": false,
+    "color": "#000000"
+  },
+  {
+    "kind": "line",
+    "x": 39570.0,
+    "y": 108208,
+    "width": 5048,
+    "height": 0,
+    "pen": 34.01574803149607,
+    "dash": false,
+    "color": "#000000"
+  },
+  {
+    "kind": "line",
+    "x": 39570.0,
+    "y": 110408,
+    "width": 5048,
+    "height": 0,
+    "pen": 34.01574803149607,
+    "dash": false,
+    "color": "#000000"
+  },
+  {
+    "kind": "line",
+    "x": 39570.0,
+    "y": 110408,
+    "width": 5048.0,
+    "height": -2200,
+    "pen": 34.01574803149607,
+    "dash": false,
+    "color": "#000000",
+    "decoration": "cell-diagonal"
+  },
+  {
+    "kind": "text",
+    "char": "1",
+    "font": "Original HFT TEGMJEN",
+    "height": 1272.0,
+    "ratio": 1.0,
+    "bold": false,
+    "italic": false,
+    "kerning": false,
+    "stroke": 0,
+    "center_shift": 445.2,
+    "advance": 864,
+    "trailing_spacing": 0,
+    "field": "page-number",
+    "x": 39990.0,
+    "y": 109368.0
+  },
+  {
+    "kind": "text",
+    "char": "1",
+    "font": "Original HFT TEGMJEN",
+    "height": 1272.0,
+    "ratio": 1.0,
+    "bold": false,
+    "italic": false,
+    "kerning": false,
+    "stroke": 0,
+    "center_shift": 445.2,
+    "advance": 864,
+    "trailing_spacing": 0,
+    "field": "total",
+    "x": 43334.0,
+    "y": 110088.0,
+    "field_index": 0
+  }
+]
