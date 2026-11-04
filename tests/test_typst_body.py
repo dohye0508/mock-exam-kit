@@ -39,6 +39,7 @@ class BodyIntegrationTests(unittest.TestCase):
         from examkit.parse_md import parse
         from examkit.typst_body import build
         meta, questions = parse((ROOT/'docs/examples/format-demo.md').read_text(encoding='utf-8'))
+        meta['question_spacing']='compact'
         self.assertTrue(all(q['gap']==0 for q in questions))
         with tempfile.TemporaryDirectory(dir=ROOT) as folder:
             target = Path(folder)/'prompt.pdf'
@@ -69,6 +70,22 @@ class BodyIntegrationTests(unittest.TestCase):
             self.assertAlmostEqual(sub['height'],letter['height']*.64)
             self.assertGreater(sub['y'],letter['y'])
             self.assertLess(sub['advance'],letter['advance'])
+            auto=Path(folder)/'auto.pdf'
+            build(meta|{'question_spacing':'auto'},questions,auto)
+            spaced=json.loads(auto.with_suffix('.assets').joinpath('body-1.json').read_text(encoding='utf-8'))
+            self.assertEqual(len(commands),len(spaced))
+            starts=sorted((c['question_top'],c['question_start']) for c in commands if 'question_start' in c)
+            offsets={n:set() for _,n in starts}
+            for before,after in zip(commands,spaced):
+                self.assertEqual({k:v for k,v in before.items() if k not in ('y','question_top')},
+                                 {k:v for k,v in after.items() if k not in ('y','question_top')})
+                n=max((top,n) for top,n in starts if before['y']>=top)[1]
+                offsets[n].add(round(after['y']-before['y'],5))
+            self.assertTrue(all(len(values)==1 for values in offsets.values()),'Each question must move as a whole')
+            shifts=[next(iter(offsets[n])) for _,n in starts]
+            self.assertEqual(shifts[0],0)
+            self.assertGreater(shifts[1],0)
+            self.assertAlmostEqual(shifts[2],2*shifts[1],places=4)
             questions[0]['gap']=2
             questions[0]['opts']=['iiiiiii']*5  # Seven narrow glyphs fit the original cell.
             build(meta,questions,target)

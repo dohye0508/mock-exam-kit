@@ -41,6 +41,42 @@ class Engine(Composer):
             self.styles['@blank']=(self.root.find('.//CHARSHAPE[@Id="119"]'),self.root.find('.//PARASHAPE[@Id="98"]'))
         else:self.styles['@blank']=self.styles['choices']
 
+    def paragraph(self, runs, role, x, y, width, number=None, fragment=None, **kwargs):
+        opening=number is not None and not kwargs.get('continued') and not (fragment or {}).get('continued')
+        start=len(self.commands)
+        end=super().paragraph(runs,role,x,y,width,number=number,fragment=fragment,**kwargs)
+        if opening:
+            first=next((c for c in self.commands[start:] if c['kind']=='text'),None)
+            if first is not None:first.update(question_start=number,question_top=y)
+        return end
+
+    def compose(self, document, *args, **kwargs):
+        previous={id(c) for c in self.commands}
+        result=super().compose(document,*args,**kwargs)
+        ending=document.get('blocks',[])[-1].get('question_end') if document.get('blocks') else None
+        if ending is not None:
+            added=[c for c in self.commands if id(c) not in previous]
+            if added:max(added,key=command_bottom)['question_end']=ending
+        return result
+
+    def space_questions(self, page):
+        geometry=self.page_geometry(page)
+        divider=geometry['left']+geometry['width']+geometry['gap']/2
+        for column in (0,1):
+            commands=[c for c in self.commands if int(c['x']>=divider)==column]
+            heads=sorted((c for c in commands if 'question_start' in c),key=lambda c:c['question_top'])
+            ends={c['question_end'] for c in commands if 'question_end' in c}
+            # A question continued from/to another column must keep its existing flow.
+            if len(heads)<2 or any(h['question_start'] not in ends for h in heads):continue
+            if any(c['y']<heads[0]['question_top'] for c in commands):continue
+            extra=max(0,geometry['bottom'][column]-max(map(command_bottom,commands)))/len(heads)
+            tops=[h['question_top'] for h in heads]
+            for c in commands:
+                index=max(i for i,top in enumerate(tops) if c['y']>=top)
+                c['y']+=index*extra
+                if 'question_top' in c:c['question_top']+=index*extra
+            assert max(map(command_bottom,commands))<=geometry['bottom'][column]+1e-6
+
     def original_charshape(self, shape):
         # Overlay IDs belong to the science source, even on a social sheet.
         owner = self if self.subject == 'science' else Engine('science')
@@ -370,6 +406,7 @@ def blocks(questions):
                 group.append(dict(kind='choices',items=[[t] if isinstance(t,dict) else t for t in choices],columns=columns))
         for b in group:b['keep_with_next']=True
         group[-1]['keep_with_next']=False
+        group[-1]['question_end']=q['n']
         for _ in range(q['gap']):group.append(dict(runs='',style='@blank'))
         result.extend(group)
     return result
@@ -406,6 +443,10 @@ meta=request['meta'];profile=request['profile'];all_blocks=blocks(request['quest
 minimum=int(meta.get('pages',1)) if meta.get('pages') not in (None,'auto') else 1
 document=dict(subject=profile,flow=True,min_pages=minimum,blocks=all_blocks)
 pages=paginate(document,composer=Engine)
+spacing=meta.get('question_spacing','auto')
+if spacing not in ('auto','compact'):raise ValueError('question_spacing은 auto 또는 compact여야 합니다.')
+if spacing=='auto':
+    for editor,page in pages:editor.space_questions(page)
 output=Path(request['output']);relative=lambda p:Path(os.path.relpath(p,output.parent)).as_posix()
 source=f'#import {json.dumps(relative(ENGINE/"exam.typ"))}: exam-page\n#import {json.dumps(relative(ENGINE/"original-header.typ"))}: source-commands\n'
 for i,(editor,page) in enumerate(pages,1):
@@ -415,4 +456,4 @@ for i,(editor,page) in enumerate(pages,1):
     source+=(f'#exam-page("{profile}", [], [], page-no: {i}, total: {len(pages)}, last-page: {str(i==len(pages)).lower()}, auto-flow: true, '
              f'heading-commands: json({json.dumps(relative(front),ensure_ascii=False)}), overlay: source-commands(json({json.dumps(relative(body),ensure_ascii=False)})))\n')
 output.write_text(source,encoding='utf-8')
-(ASSETS/'manifest.json').write_text(json.dumps(dict(pages=len(pages),questions=[q['n'] for q in request['questions']],hancom=False,profile=profile),ensure_ascii=False,indent=2),encoding='utf-8')
+(ASSETS/'manifest.json').write_text(json.dumps(dict(pages=len(pages),questions=[q['n'] for q in request['questions']],hancom=False,profile=profile,question_spacing=spacing),ensure_ascii=False,indent=2),encoding='utf-8')
