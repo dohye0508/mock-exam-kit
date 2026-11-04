@@ -50,6 +50,15 @@ def pdf(path=None, text='fixture'):
 
 
 class InputTests(unittest.TestCase):
+    def test_choice_layout_directive(self):
+        for value,expected in [('auto',None),('5',5),('3',3),('2',2),('1',1)]:
+            meta,questions=parse_md.parse(question(extra=f'@choices {value}'))
+            self.assertEqual(questions[0]['choice_columns'],expected)
+            self.assertEqual(parse_md.check(meta,questions),[])
+        for value in ('','4','3 2'):
+            with self.assertRaisesRegex(ValueError,'@choices'):
+                parse_md.parse(question(extra='@choices '+value))
+
     def test_valid_example(self):
         source = (ROOT / 'content/example.md').read_text(encoding='utf-8')
         self.assertEqual(parse_md.check(*parse_md.parse(source)), [])

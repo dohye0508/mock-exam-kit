@@ -99,6 +99,11 @@ def parse_question(n, header_rest, body_lines):
         elif s.startswith("@inline"):
             # 선택지를 한 줄에 늘어놓는다(글자 수 기준 자동 판정을 넘어설 때)
             q["inline_opts"] = True
+        elif s == '@choices' or s.startswith('@choices '):
+            value = s.partition(' ')[2].strip()
+            if value not in ('auto', '5', '3', '2', '1'):
+                raise ValueError('@choices는 auto, 5, 3, 2, 1 중 하나여야 합니다.')
+            q['choice_columns'] = None if value == 'auto' else int(value)
         elif not q["head"]:
             q["head"] = s
         else:

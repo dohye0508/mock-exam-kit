@@ -35,6 +35,39 @@ class EquationTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('EXAMKIT_TYPST_ROOT') and os.environ.get('TYPST_EXE'), 'Configured Typst engine required')
 class BodyIntegrationTests(unittest.TestCase):
+    def test_choice_layouts_use_original_rows_and_tab_positions(self):
+        from examkit.parse_md import parse
+        from examkit.typst_body import build
+        meta, _ = parse((ROOT/'docs/examples/format-demo.md').read_text(encoding='utf-8'))
+        meta.update(pages='auto',question_spacing='compact')
+        samples=[(['1','2','3','4','5'],None,5),
+                 (['RAIBIT','RBAIBT','RBIABT','RABBIT','RIBBAT'],None,3),
+                 (['ABCDEFGHIJKLMNO']*5,None,2),
+                 (['선택지의 내용을 끝까지 읽고 서로 비교하여 판단한다.']*5,None,1),
+                 (['1','2','3','4','5'],3,3),(['1','2','3','4','5'],2,2)]
+        questions=[]
+        for n,(items,override,_) in enumerate(samples,1):
+            _,parsed=parse(f'## {n}.\n배열을 확인하시오.\n? 알맞은 것을 고르시오.\n'+
+                           '\n'.join(mark+' '+item for mark,item in zip('①②③④⑤',items))+
+                           (f'\n@choices {override}' if override else ''))
+            questions.extend(parsed)
+        with tempfile.TemporaryDirectory(dir=ROOT) as folder:
+            for profile in ('science','social'):
+                target=Path(folder)/f'{profile}.pdf'
+                build(meta|{'body_template':profile},questions,target)
+                commands=[c for file in sorted(target.with_suffix('.assets').glob('body-*.json'))
+                          for c in json.loads(file.read_text(encoding='utf-8'))]
+                groups=[]
+                for c in commands:
+                    if 'question_start' in c:groups.append([])
+                    if c.get('char') in tuple('①②③④⑤'):groups[-1].append(c)
+                self.assertEqual(len(groups),len(samples))
+                for marks,(_,_,columns) in zip(groups,samples):
+                    self.assertEqual([c['char'] for c in marks],list('①②③④⑤'))
+                    self.assertEqual(len({round(c['y'],3) for c in marks}),(5+columns-1)//columns)
+                    for i in range(columns,len(marks)):
+                        self.assertAlmostEqual(marks[i]['x'],marks[i%columns]['x'],places=3)
+
     def test_question_and_example_styles_match_native_reference(self):
         from examkit.parse_md import parse
         from examkit.typst_body import build
@@ -163,6 +196,7 @@ three: 0
             shifts=[next(iter(offsets[n])) for _,n in starts]
             self.assertEqual(shifts[0],0)
             self.assertGreater(shifts[1],0)
+            self.assertLessEqual(shifts[1],2*1150*1.4)
             self.assertAlmostEqual(shifts[2],2*shifts[1],places=4)
             questions[0]['gap']=2
             questions[0]['opts']=['iiiiiii']*5  # Seven narrow glyphs fit the original cell.

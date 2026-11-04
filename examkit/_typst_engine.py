@@ -70,7 +70,9 @@ class Engine(Composer):
             # A question continued from/to another column must keep its existing flow.
             if len(heads)<2 or any(h['question_start'] not in ends for h in heads):continue
             if any(c['y']<heads[0]['question_top'] for c in commands):continue
-            extra=max(0,geometry['bottom'][column]-max(map(command_bottom,commands)))/len(heads)
+            cs,ps=self.styles['question']
+            line=int(cs.get('Height'))*int(ps.find('PARAMARGIN').get('LineSpacing'))/100
+            extra=min(2*line,max(0,geometry['bottom'][column]-max(map(command_bottom,commands)))/len(heads))
             tops=[h['question_top'] for h in heads]
             for c in commands:
                 index=max(i for i,top in enumerate(tops) if c['y']>=top)
@@ -217,7 +219,7 @@ class Engine(Composer):
             end+=after-int(pm.get('Next'))/2-int(outer.get('Bottom'))
         return end
 
-    def choices_fit_one_row(self, items):
+    def choices_fit_one_row(self, items, breathing_room=False):
         table=self.root.findall('./BODY/SECTION//TABLE')[13 if self.subject=='science' else 12]
         cells=table.findall('ROW/CELL')[1::2]
         for item,cell in zip(items,cells):
@@ -227,8 +229,27 @@ class Engine(Composer):
             tokens=self.tokens(item,'@choice-fit')
             occupied=sum(t['advance'] for t in tokens)-(tokens[-1].get('trailing_spacing',0) if tokens else 0)
             available=int(cell.get('Width'))-int(margin.get('Left'))-int(margin.get('Right'))
+            if breathing_room:available-=int(self.styles['@choice-fit'][0].get('Height'))
             if any(t['kind']=='break' for t in tokens) or occupied>available:return False
         return True
+
+    def choice_columns(self, items):
+        if self.choices_fit_one_row(items,breathing_room=True):return 5
+        width=self.page_geometry(dict(page_no=2,last_page=False))['width']
+        for count in (3,2):
+            role=({'science':{3:'①－2행',2:'3행답항'},'social':{3:'2행답항',2:'①-2'}}[self.subject][count])
+            cs,ps=self.styles[role];pm=ps.find('PARAMARGIN')
+            anchors=[int(pm.get('Left'))/2]+sorted({int(t.get('Pos'))/2 for t in self.root.findall(f'.//TABDEF[@Id="{ps.get("TabDef")}"]/TABITEM') if t.get('Type')=='Left' and int(t.get('Pos'))>0})
+            assert len(anchors)==count, '선택지 서식의 탭 수가 배치 열 수와 다릅니다.'
+            for i,item in enumerate(items):
+                tokens=self.tokens(chr(0x2460+i)+' '+item,role)
+                occupied=sum(t['advance'] for t in tokens)-(tokens[-1].get('trailing_spacing',0) if tokens else 0)
+                col=i%count
+                available=(anchors[col+1] if col+1<count else width)-anchors[col]-int(pm.get('Right'))/2
+                # Keep one em between neighbouring answers instead of merely avoiding overlap.
+                if any(t['kind']=='break' for t in tokens) or occupied+int(cs.get('Height'))>available:break
+            else:return count
+        return 1
 
     def data_table(self, block, x, y, width):
         rows=block['rows']; columns=len(rows[0])
@@ -415,7 +436,9 @@ def blocks(questions):
             group.append(dict(kind='data_table',rows=cells,widths=[.35]+[1]*len(headers),rules=False))
         else:
             items=q.get('opts',q.get('set'))
-            columns=5 if q.get('inline_opts') or measure.choices_fit_one_row(items) else 1
+            columns=q.get('choice_columns',5 if q.get('inline_opts') else None) or measure.choice_columns(items)
+            if columns==5 and not measure.choices_fit_one_row(items):
+                raise ValueError(f'{q["n"]}번 선택지가 한 줄 배치의 원본 칸 폭을 넘습니다. @choices 3 또는 auto를 사용하세요.')
             choices=[marked(text,i) for i,text in enumerate(items)]
             if columns==5:
                 cells={}
