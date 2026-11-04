@@ -17,9 +17,14 @@ def build(meta, questions, destination, template='kice-sci', *, no_compile=False
     destination.parent.mkdir(parents=True, exist_ok=True)
     if not questions:
         raise ValueError('출력할 문항이 없습니다.')
-    profile = meta.get('body_template', {'kice-sci': 'science', 'kice-social': 'social'}.get(template, template))
-    if profile not in ('science', 'social'):
-        raise ValueError('현재 MD 연결은 science(과탐), social(사탐) 본문 양식을 지원합니다.')
+    profile = meta.get('body_template', {'kice-sci': 'science', 'kice-social': 'social',
+        'kice-korean':'korean','kice-english':'english','kice-math':'math'}.get(template, template))
+    if profile not in ('science', 'social', 'korean', 'english', 'math'):
+        raise ValueError('body_template은 science, social, korean, english, math 중 하나여야 합니다.')
+    if profile in ('korean','english'):
+        native={'korean':'국어','english':'영어'}[profile]
+        if re.sub(r'\s+','',meta.get('area',native)) not in (native,native+'영역'):
+            raise ValueError(f'{native} 원본 영역명은 이미지여서 문자열 교체를 지원하지 않습니다. 임의 영역명에는 science/social/math 양식을 사용하세요. body_title은 편집할 수 있습니다.')
     engine = engine_root()
     root = Path(os.path.commonpath([engine, destination.parent]))
     source = destination.with_suffix('.typ')
@@ -42,7 +47,8 @@ def build(meta, questions, destination, template='kice-sci', *, no_compile=False
         def validate(pdf):
             first=''.join(pdf[0].get_text().split())
             for value in (meta.get('body_title',f"{meta.get('year','2027학년도')} {meta.get('exam','모의고사')} 문제지"),
-                          meta.get('area',''),meta.get('subject',''),meta.get('period','')):
+                          meta.get('area','') if profile not in ('korean','english') else '',
+                          meta.get('subject','') if profile in ('science','social') else '',meta.get('period','')):
                 if value and ''.join(value.split()) not in first:
                     raise ValueError(f'본문 머리글 누락: {value}')
             text='\n'.join(p.get_text() for p in pdf)

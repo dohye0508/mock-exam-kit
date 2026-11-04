@@ -50,6 +50,15 @@ def pdf(path=None, text='fixture'):
 
 
 class InputTests(unittest.TestCase):
+    def test_shared_passage_validation(self):
+        meta,qs=parse_md.parse(question(extra='::: passage range=1\n공통 지문.\n:::'))
+        self.assertEqual(qs[0]['passage']['items'],['공통 지문.'])
+        self.assertEqual(parse_md.check(meta,qs),[])
+        for content in ('::: passage range=2\n내용\n:::','::: passage\n:::'):
+            with self.assertRaises(ValueError):parse_md.parse(question(extra=content))
+        meta,qs=parse_md.parse(question(extra='::: passage range=1-2\n내용\n:::'))
+        self.assertTrue(parse_md.check(meta,qs))
+
     def test_choice_layout_directive(self):
         for value,expected in [('auto',None),('5',5),('3',3),('2',2),('1',1)]:
             meta,questions=parse_md.parse(question(extra=f'@choices {value}'))

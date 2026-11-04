@@ -1,5 +1,5 @@
 """Measured reference PDF layout. See docs/explanation-format.md."""
-import hashlib, html, math, os, re, shutil, sys, tempfile
+import hashlib, html, math, re, shutil, sys, tempfile
 from pathlib import Path
 import pymupdf as fitz
 try:
@@ -19,29 +19,19 @@ SUBJECT_BASELINE = 231.753
 GRID_TOP, GRID_ROW_HEIGHT = 242.187, 12.834
 BODY_AFTER_GRID = 25.1
 TOP, BOTTOM = 169.966,1068.493
-FONT_DIR = Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts'
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 
 
 def font_paths():
-    if os.environ.get('EXAMKIT_TYPST_ROOT'):
-        directory = Path(os.environ['EXAMKIT_TYPST_ROOT']) / 'fonts'
-        paths = dict(body=directory/'HBATANG-native-fallback.ttf', head=directory/'H2HDRM.TTF',
-                     myeong=directory/'H2MJRE.TTF', gothic=directory/'H2GTRE.TTF')
-        for path in paths.values():
-            if not path.is_file(): raise FileNotFoundError(path)
-        return paths
-    candidates = [FONT_DIR/'HBATANG.TTF']
-    hnc = Path(os.environ.get('ProgramFiles(x86)','C:/Program Files (x86)'))/'Hnc'
-    candidates += sorted(hnc.glob('**/TTF/All/HBATANG.TTF'))
-    body = next((p for p in candidates if p.exists()), None)
-    if not body:
-        raise FileNotFoundError('한컴 바탕(HBATANG.TTF)이 필요합니다. 함초롬바탕으로 대체하지 않습니다.')
-    paths = dict(body=body,head=FONT_DIR/'H2HDRM.TTF',myeong=FONT_DIR/'H2MJRE.TTF',gothic=FONT_DIR/'H2GTRE.TTF')
-    for p in paths.values():
-        if not p.is_file(): raise FileNotFoundError(p)
+    from examkit.typst_runtime import engine_root
+    directory=engine_root()/'fonts'
+    paths=dict(body=directory/'HBATANG-native-fallback.ttf',head=directory/'H2HDRM.TTF',
+               myeong=directory/'H2MJRE.TTF',gothic=directory/'H2GTRE.TTF')
+    for path in paths.values():
+        if not path.is_file():raise FileNotFoundError(path)
     return paths
+
 
 CSS = '''
 @font-face { font-family: hb; src: url(body.ttf); }

@@ -11,6 +11,15 @@ from examkit.math_grids import expand, rows
 
 
 class GridSyntaxTests(unittest.TestCase):
+    def test_array_and_alignment(self):
+        for source,expected in [(r'\begin{array}{lr}1&2\\3&4\end{array}','lr'),
+                                (r'\begin{aligned}x&=1\\y&=2\end{aligned}','rl')]:
+            grids={};atom=expand(source,grids,set(source))
+            self.assertEqual(grids[atom][2],expected)
+        for source in [r'\begin{array}{l}1&2\end{array}',r'\begin{align}x\end{align}',
+                       r'\begin{array}{|c|}1\end{array}']:
+            with self.assertRaises(ValueError):expand(source,{},set(source))
+
     def test_groups_empty_cells_and_trailing_separator(self):
         self.assertEqual(rows(r'a&&\frac{b}{c}\\d&e&f\\'),[['a','',r'\frac{b}{c}'],['d','e','f']])
         self.assertEqual(rows(r'\text{a\&b}&c'),[[r'\text{a\&b}','c']])
@@ -37,6 +46,16 @@ class GridSyntaxTests(unittest.TestCase):
 class GridRenderingTests(unittest.TestCase):
     def setUp(self):
         self.font=str(Path(os.environ['EXAMKIT_TYPST_ROOT'])/'fonts/HancomEQN.ttf')
+
+    def test_aligned_equals_and_array(self):
+        result=equation(r'\begin{aligned}x&=1\\yyy&=2\end{aligned}',11.5,self.font)
+        equals=[c for c in result['commands'] if c.get('char')=='=']
+        self.assertEqual(len(equals),2)
+        self.assertAlmostEqual(equals[0]['x'],equals[1]['x'])
+        self.assertLess(equals[0]['y'],equals[1]['y'])
+        result=equation(r'\begin{array}{lr}1&22\\333&4\end{array}',11.5,self.font)
+        chars=[c for c in result['commands'] if c['kind']=='text']
+        self.assertAlmostEqual(next(c['x'] for c in chars if c['char']=='1'),next(c['x'] for c in chars if c['char']=='3'))
 
     def test_rows_columns_delimiters_and_baseline(self):
         for name in ('matrix','pmatrix','bmatrix','Bmatrix','vmatrix','Vmatrix','cases'):

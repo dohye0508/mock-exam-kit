@@ -27,6 +27,11 @@ from examkit.typst_body import REVIEW_COLORS
 
 ASSETS = Path(request['assets'])
 ROOT = Path(request['root'])
+CHOICE_STYLES = {'science':{2:'3행답항',3:'①－2행',5:'①－1행'},
+    'social':{2:'①-2',3:'2행답항',5:'①-⑤'},
+    'korean':{2:'①-3행답안',3:'①-2행답안',5:'①-1행답안'},
+    'english':{2:'①-3행답안',3:'①-2행답안',5:'①-5행답안'},
+    'math':{2:'3행',3:'2행',5:'21 1행'}}
 INLINE = re.compile(r'(\{\{frac\|[^|}]+\|[^}]+\}\}|\$[^$]+\$|__[^_]+__|[₀₁₂₃₄₅₆₇₈₉]+|[⁰¹²³⁴⁵⁶⁷⁸⁹]+)')
 
 
@@ -37,7 +42,8 @@ def resource(path):
 class Engine(Composer):
     def __init__(self, subject):
         super().__init__(subject)
-        self.styles['ask']=self.styles['02-문제(2행)' if subject=='science' else '문제 아래 - 일반']
+        self.styles['ask']=self.styles[{'science':'02-문제(2행)','social':'문제 아래 - 일반',
+            'korean':'question','english':'question','math':'21 박스아래'}[subject]]
         if subject=='science':
             self.styles['@blank']=(self.root.find('.//CHARSHAPE[@Id="119"]'),self.root.find('.//PARASHAPE[@Id="98"]'))
         else:self.styles['@blank']=self.styles['choices']
@@ -46,10 +52,23 @@ class Engine(Composer):
         opening=number is not None and not kwargs.get('continued') and not (fragment or {}).get('continued')
         start=len(self.commands)
         end=super().paragraph(runs,role,x,y,width,number=number,fragment=fragment,**kwargs)
+        if getattr(self,'_wrapped_bottom',None) is not None:
+            end=max(end,self._wrapped_bottom);self._wrapped_bottom=None
         if opening:
             first=next((c for c in self.commands[start:] if c['kind']=='text'),None)
             if first is not None:first.update(question_start=number,question_top=y)
         return end
+
+    def wrapped_picture(self, block, x, y, width):
+        if 'file' not in block:return super().wrapped_picture(block,x,y,width)
+        w,h=block['size'];gap=7200/25.4*2
+        if not 0<w<width-gap:raise ValueError('본문 옆 그림은 단 폭보다 좁아야 합니다. figure의 w를 줄이세요.')
+        side=block.get('wrap','right');left=x if side=='left' else x+width-w
+        bottom=self.figure(block,left,y,w)
+        region=dict(left=left-gap if side=='right' else left,right=left+w+gap if side=='left' else left+w,
+                    top=y,bottom=bottom,side=side.title())
+        self.float_regions.append(region);self._wrapped_bottom=bottom
+        return region
 
     def compose(self, document, *args, **kwargs):
         previous={id(c) for c in self.commands}
@@ -81,8 +100,11 @@ class Engine(Composer):
             assert max(map(command_bottom,commands))<=geometry['bottom'][column]+1e-6
 
     def original_charshape(self, shape):
-        # Overlay IDs belong to the science source, even on a social sheet.
-        owner = self if self.subject == 'science' else Engine('science')
+        # Overlay IDs and their border/font references belong to the science source.
+        if not hasattr(self,'_overlay_shapes'):self._overlay_shapes={}
+        if shape in self._overlay_shapes:return self._overlay_shapes[shape]
+        if self.subject!='science' and not hasattr(self,'_overlay_owner'):self._overlay_owner=Engine('science')
+        owner = self if self.subject == 'science' else self._overlay_owner
         original = owner.root.find(f'.//CHARSHAPE[@Id="{int(shape)}"]')
         if original is None: raise ValueError(f'없는 원본 글자 모양: {shape}')
         cs = deepcopy(original)
@@ -92,6 +114,13 @@ class Engine(Composer):
                 target = self.root.find(f'.//FONTFACE[@Lang="{lang}"]/FONT[@Name="{name}"]')
                 if target is None: raise ValueError(f'원본 글꼴 정의가 없습니다: {name}')
                 cs.find('FONTID').set(lang, target.get('Id'))
+            border=owner.root.find(f'.//BORDERFILL[@Id="{cs.get("BorderFillId")}"]')
+            if border is not None:
+                copy=deepcopy(border)
+                bid=str(max(int(b.get('Id')) for b in self.root.findall('.//BORDERFILL'))+1)
+                copy.set('Id',bid);self.root.find('.//BORDERFILLLIST').append(copy)
+                cs.set('BorderFillId',bid)
+        self._overlay_shapes[shape]=cs
         return cs
 
     def tokens(self, runs, role, para_shape=None):
@@ -121,7 +150,7 @@ class Engine(Composer):
                 continue
             if not isinstance(run, str):
                 result.extend(super().tokens([run], role, para_shape)); continue
-            for part in INLINE.split(run.replace('~', '∼').replace('\u00a0', '\x1e')):
+            for part in INLINE.split(run.replace('<br>', '\n').replace('~', '∼').replace('\u00a0', '\x1e')):
                 if not part: continue
                 if part[0] in '₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹':
                     from lxml import etree as E
@@ -149,6 +178,9 @@ class Engine(Composer):
         return result
 
     def source_example(self, block, x, y, width):
+        if self.subject=='korean':return super().source_example(block,x,y,width)
+        if self.subject not in ('science','social'):
+            return self.source_box(dict(items=[dict(runs='<보기>',align='Center')]+block['items'],fit_content=True),x,y,width)
         table=self.root.findall('./BODY/SECTION//TABLE')[12 if self.subject=='science' else 11]
         body=next(c for c in table.findall('ROW/CELL') if c.get('ColSpan')=='3')
         prototypes=body.findall('PARALIST/P');items=[]
@@ -164,6 +196,9 @@ class Engine(Composer):
         return super().source_example(block|dict(items=items),x,y,width)
 
     def fraction(self, numerator, denominator):
+        if self.subject not in ('science','social'):
+            return self.inline(equation(r'\frac{'+numerator+'}{'+denominator+'}',
+                int(self.styles['choices'][0].get('Height'))/100,str(ENGINE/'fonts/HancomEQN.ttf')))
         from extract_body_fixture import Body
         source=Body(self.subject);index=37 if self.subject=='science' else 63
         table=source.root.findall('./BODY/SECTION//TABLE')[index]
@@ -197,7 +232,8 @@ class Engine(Composer):
                     above=eq['baseline'], below=eq['height']-eq['baseline'], can_break=True)
 
     def source_box(self, block, x, y, width):
-        table=self.root.findall('./BODY/SECTION//TABLE')[block.get('box_template',14 if self.subject=='science' else 10)]
+        if self.subject=='math':return super().source_box(block,x,y,width)
+        table=self.root.findall('./BODY/SECTION//TABLE')[block.get('box_template',{'science':14,'social':10,'korean':27,'english':14}[self.subject])]
         size=table.find('./SHAPEOBJECT/SIZE');old=size.get('Width')
         if int(old)>width:
             p=next(table.iterancestors('P'))
@@ -220,6 +256,7 @@ class Engine(Composer):
         return end
 
     def choices_fit_one_row(self, items, breathing_room=False):
+        if self.subject not in ('science','social'):return self.choices_fit_columns(items,5,breathing_room)
         table=self.root.findall('./BODY/SECTION//TABLE')[13 if self.subject=='science' else 12]
         cells=table.findall('ROW/CELL')[1::2]
         for item,cell in zip(items,cells):
@@ -227,7 +264,7 @@ class Engine(Composer):
             self.styles['@choice-fit']=(self.root.find(f'.//CHARSHAPE[@Id="{p.find("TEXT").get("CharShape")}"]'),self.root.find(f'.//PARASHAPE[@Id="{p.get("ParaShape")}"]'))
             margin=cell.find('CELLMARGIN') if cell.get('HasMargin')=='true' else table.find('INSIDEMARGIN')
             tokens=self.tokens(item,'@choice-fit')
-            occupied=sum(t['advance'] for t in tokens)-(tokens[-1].get('trailing_spacing',0) if tokens else 0)
+            occupied=sum(t.get('advance',0) for t in tokens)-(tokens[-1].get('trailing_spacing',0) if tokens else 0)
             available=int(cell.get('Width'))-int(margin.get('Left'))-int(margin.get('Right'))
             if breathing_room:available-=int(self.styles['@choice-fit'][0].get('Height'))
             if any(t['kind']=='break' for t in tokens) or occupied>available:return False
@@ -235,21 +272,24 @@ class Engine(Composer):
 
     def choice_columns(self, items):
         if self.choices_fit_one_row(items,breathing_room=True):return 5
-        width=self.page_geometry(dict(page_no=2,last_page=False))['width']
         for count in (3,2):
-            role=({'science':{3:'①－2행',2:'3행답항'},'social':{3:'2행답항',2:'①-2'}}[self.subject][count])
-            cs,ps=self.styles[role];pm=ps.find('PARAMARGIN')
-            anchors=[int(pm.get('Left'))/2]+sorted({int(t.get('Pos'))/2 for t in self.root.findall(f'.//TABDEF[@Id="{ps.get("TabDef")}"]/TABITEM') if t.get('Type')=='Left' and int(t.get('Pos'))>0})
-            assert len(anchors)==count, '선택지 서식의 탭 수가 배치 열 수와 다릅니다.'
-            for i,item in enumerate(items):
-                tokens=self.tokens(chr(0x2460+i)+' '+item,role)
-                occupied=sum(t['advance'] for t in tokens)-(tokens[-1].get('trailing_spacing',0) if tokens else 0)
-                col=i%count
-                available=(anchors[col+1] if col+1<count else width)-anchors[col]-int(pm.get('Right'))/2
-                # Keep one em between neighbouring answers instead of merely avoiding overlap.
-                if any(t['kind']=='break' for t in tokens) or occupied+int(cs.get('Height'))>available:break
-            else:return count
+            if self.choices_fit_columns(items,count):return count
         return 1
+
+    def choices_fit_columns(self, items, count, breathing_room=True):
+        width=self.page_geometry(dict(page_no=2,last_page=False))['width']
+        role=CHOICE_STYLES[self.subject][count]
+        cs,ps=self.styles[role];pm=ps.find('PARAMARGIN')
+        anchors=[int(pm.get('Left'))/2]+sorted({int(t.get('Pos'))/2 for t in self.root.findall(f'.//TABDEF[@Id="{ps.get("TabDef")}"]/TABITEM') if t.get('Type')=='Left' and int(t.get('Pos'))>0})
+        assert len(anchors)==count, '선택지 서식의 탭 수가 배치 열 수와 다릅니다.'
+        for i,item in enumerate(items):
+            tokens=self.tokens(chr(0x2460+i)+' '+item,role)
+            occupied=sum(t.get('advance',0) for t in tokens)-(tokens[-1].get('trailing_spacing',0) if tokens else 0)
+            col=i%count
+            available=(anchors[col+1] if col+1<count else width)-anchors[col]-int(pm.get('Right'))/2
+            # Keep one em between neighbouring answers instead of merely avoiding overlap.
+            if any(t['kind']=='break' for t in tokens) or occupied+(int(cs.get('Height')) if breathing_room else 0)>available:return False
+        return True
 
     def data_table(self, block, x, y, width):
         rows=block['rows']; columns=len(rows[0])
@@ -257,7 +297,8 @@ class Engine(Composer):
         weights=block.get('widths') or [1]*columns
         assert len(weights)==columns and all(w>0 for w in weights)
         rules=block.get('rules',True)
-        index=({'science':16,'social':50} if rules else {'science':27,'social':9})[self.subject]
+        index=({'science':16,'social':50,'korean':39,'english':12,'math':11} if rules else
+               {'science':27,'social':9,'korean':10,'english':22,'math':11})[self.subject]
         prototype=self.root.findall('./BODY/SECTION//TABLE')[index]
         after=0
         if 'char_shape' not in block:
@@ -269,7 +310,9 @@ class Engine(Composer):
         source_rows=prototype.findall('ROW')
         cells=[];occupied={};heights=[block.get('row_h') or 0]*len(rows)
         for r,row in enumerate(rows):
-            original=source_rows[0 if r==0 else 1].find('CELL')
+            candidates=source_rows[0 if r==0 else 1].findall('CELL')
+            # The Korean reference's top-left cell has a diagonal category divider.
+            original=candidates[1 if self.subject=='korean' and rules and r==0 else 0]
             if not block.get('row_h'):heights[r]=int(original.get('Height'))
             p=original.find('PARALIST/P')
             cs=self.original_charshape(block['char_shape']) if 'char_shape' in block else self.root.find(f'.//CHARSHAPE[@Id="{p.find("TEXT").get("CharShape")}"]')
@@ -350,7 +393,14 @@ class Engine(Composer):
             ps.find('PARAMARGIN').set('LineSpacing',spacing or '140')
             if alignment=='item': ps.find('PARAMARGIN').attrib.update(Left=str(int(3.2*mm*2)),Indent=str(-int(3.2*mm*2)))
             saved=self.commands;self.commands=[]
-            end=self.paragraph(content.strip().replace(' / ','\n').replace('<br>','\n'),'@overlay',0,0,w-200,align={'left':'Left','item':'Left','justify':'Justify','center':'Center','right':'Right'}[alignment],trim_end=True)
+            content=content.strip().replace(' / ','\n')
+            if key.startswith('text'):
+                wrap=params.get(key+'_wrap','1')
+                if wrap not in ('0','1'):raise ValueError(f'{key}_wrap은 0 또는 1이어야 합니다.')
+                if wrap=='1':
+                    from examkit.hwpx import prewrap
+                    content='\n'.join(prewrap(line,(w-200)/mm,params.get(key+'_font','39'),3.2 if alignment=='item' else 0) for line in content.split('\n'))
+            end=self.paragraph(content,'@overlay',0,0,w-200,align={'left':'Left','item':'Left','justify':'Justify','center':'Center','right':'Right'}[alignment],trim_end=True)
             cmds=self.commands;self.commands=saved
             assert end<=h-200, f'{key}: 그림 위 글이 지정 높이를 넘습니다.'
             valign=params.get(key+'_valign','CENTER' if key.startswith(('bubble','label')) else 'TOP')
@@ -405,12 +455,23 @@ def blocks(questions):
     measure=Engine(request['profile'])
     for q in questions:
         if q['pb'] or q['cb']:result.append(dict(kind='page_break' if q['pb'] else 'column_break'))
+        if 'passage' in q:
+            passage=q['passage'];a,b=passage['first'],passage['last']
+            label=f'[{a}~{b}]' if a!=b else f'[{a}]'
+            result.append(dict(runs=label+' '+passage['prompt'],style='range' if request['profile']=='korean' else 'question',keep_with_next=True))
+            if request['profile']=='korean':result.append(dict(kind='passage',items=passage['items']))
+            else:result.extend(dict(runs=line,style='passage') for line in passage['items'])
         ask=q['ask'].rstrip()+('\u00a0[3점]' if q['three'] else '')
         only_prompt=not q['head'] and not q['blocks']
         group=[dict(runs=ask if only_prompt else q['head'],number=q['n'],style='question')]
         for i,(kind,payload) in enumerate(q['blocks']):
             if kind=='figure':
                 block=image_block(payload,q['n'],i)
+                if payload['kv'].get('wrap'):
+                    wrap=payload['kv']['wrap']
+                    if wrap not in ('left','right') or group[-1].get('kind') is not None:
+                        raise ValueError('figure wrap=left/right는 바로 앞 발문이나 본문 문단에만 적용합니다.')
+                    group[-1]['wrap_picture']=block|dict(wrap=wrap);continue
                 if payload['kv'].get('side') and group[-1].get('kind') in ('box','data_table'):
                     group[-1]=dict(kind='artwork',pair=[group[-1],block]);continue
             elif kind=='table':block=dict(kind='data_table',rows=[payload['headers']]+payload['rows'],widths=payload['widths'],row_h=payload['row_h'])
@@ -440,7 +501,7 @@ def blocks(questions):
             if columns==5 and not measure.choices_fit_one_row(items):
                 raise ValueError(f'{q["n"]}번 선택지가 한 줄 배치의 원본 칸 폭을 넘습니다. @choices 3 또는 auto를 사용하세요.')
             choices=[marked(text,i) for i,text in enumerate(items)]
-            if columns==5:
+            if columns==5 and request['profile'] in ('science','social'):
                 cells={}
                 for i,item in enumerate(choices):
                     label=marked(chr(0x2460+i),i)
@@ -457,17 +518,56 @@ def blocks(questions):
     return result
 
 
+def math_heading(meta):
+    h=Header('math')
+    models=json.loads((ENGINE/'source-layout/math-header.json').read_text(encoding='utf-8'))
+    frames=json.loads((ENGINE/'source-layout/math-frames.json').read_text(encoding='utf-8'))
+    table=h.root.find('./BODY/SECTION/P/TEXT/TABLE')
+    paragraphs=table.findall('./ROW/CELL/PARALIST/P')
+    period=h.root.findall('./BODY/SECTION/P/TEXT/RECTANGLE')[0].find('.//P')
+    area=meta.get('area','수학');area=area if area.endswith('영역') else area+' 영역'
+    replacements={'year':(meta.get('body_title',f"{meta.get('year','2027학년도')} {meta.get('exam','모의고사')} 문제지"),paragraphs[0]),
+                  'title':(area,paragraphs[1]),'period':(meta.get('period','제2교시'),period)}
+    commands=[]
+    for name,model in models.items():
+        if name not in replacements:
+            commands.extend(g|dict(kind='text',**({'field':'page-number'} if name=='page-number' else {})) for g in model);continue
+        text,p=replacements[name]
+        styles={ch:t.get('CharShape') for t in p.findall('TEXT') for c in t.findall('CHAR') for ch in chars(c) if not ch.isspace()}
+        default=next(v for ch,v in styles.items() if '\uac00'<=ch<='\ud7a3')
+        glyphs=[];cursor=0
+        for ch in text:
+            cs=h.root.find(f'.//CHARSHAPE[@Id="{styles.get(ch,default)}"]')
+            g=h.glyph(ch,cs);offset=g.pop('offset',0);dx=g.pop('draw_dx',0)
+            glyphs.append(g|dict(kind='text',x=cursor+dx,y=model[0]['y']+offset))
+            cursor+=g['advance']
+        if glyphs:cursor-=glyphs[-1].get('trailing_spacing',0)
+        center=h.width/2 if name!='period' else frames['period']['x']+frames['period']['width']/2
+        limit=int(table.find('SHAPEOBJECT/SIZE').get('Width')) if name!='period' else frames['period']['width']
+        if cursor>limit:raise ValueError(f'수학 머리글 {name}이 원본 영역보다 깁니다.')
+        commands.extend(g|dict(x=g['x']+center-cursor/2) for g in glyphs)
+    for name,f in frames.items():
+        commands.append(dict(kind='line' if name=='rule' else 'rect',x=f['x'],y=f['y'],width=f['width'],
+            height=f.get('height',0),pen=f.get('pen',f.get('pen_mm',0)*7200/25.4),radius=.5 if name=='period' else 0,dash=False))
+    return commands
+
+
 def heading(profile, page, meta):
+    if profile=='math' and page==1:return math_heading(meta)
     h=Header(profile)
     area=meta.get('area','과학탐구');area=area if area.endswith('영역') else area+' 영역'
     name=meta.get('subject','')
-    if name: h.set_inquiry_name(name)
-    h.set_area_title(area,keep_subject=bool(name))
+    if profile in ('science','social'):
+        if name:h.set_inquiry_name(name)
+        h.set_area_title(area,keep_subject=bool(name))
+    else:h.edited_headings=set()
     for p in h.root.iter('P'):
         text=''.join(chars(c) for c in p.findall('./TEXT/CHAR'))
         compact=''.join(text.split())
         replacement=None
-        if re.fullmatch(r'제\d+교시',compact):
+        if profile not in ('science','social') and compact in ('국어영역','영어영역','수학영역'):
+            replacement=area
+        elif re.fullmatch(r'제\d+교시',compact):
             replacement=meta.get('period',text)
             match=re.fullmatch(r'제\s*(\d+)\s*교시',replacement)
             if match: replacement='제\x1f'+match[1]+'\x1f교시'
@@ -487,6 +587,12 @@ def heading(profile, page, meta):
 meta=request['meta'];profile=request['profile'];all_blocks=blocks(request['questions'])
 minimum=int(meta.get('pages',1)) if meta.get('pages') not in (None,'auto') else 1
 document=dict(subject=profile,flow=True,min_pages=minimum,blocks=all_blocks)
+elective=meta.get('elective')
+if elective:
+    if profile not in ('korean','math'):raise ValueError('elective는 국어·수학 본문에서만 사용할 수 있습니다.')
+    options=json.loads((ENGINE/f'source-layout/{profile}-electives.json').read_text(encoding='utf-8'))
+    if elective not in options:raise ValueError('선택과목은 '+', '.join(options)+' 중 하나여야 합니다.')
+    document['elective']=elective
 pages=paginate(document,composer=Engine)
 spacing=meta.get('question_spacing','auto')
 if spacing not in ('auto','compact'):raise ValueError('question_spacing은 auto 또는 compact여야 합니다.')
@@ -498,7 +604,13 @@ for i,(editor,page) in enumerate(pages,1):
     body=ASSETS/f'body-{i}.json';front=ASSETS/f'header-{i}.json'
     body.write_text(json.dumps(editor.commands,ensure_ascii=False),encoding='utf-8')
     front.write_text(json.dumps(heading(profile,i,meta),ensure_ascii=False),encoding='utf-8')
-    source+=(f'#exam-page("{profile}", [], [], page-no: {i}, total: {len(pages)}, last-page: {str(i==len(pages)).lower()}, auto-flow: true, '
+    settings=''
+    if elective:
+        year=re.search(r'\d{4}',meta.get('year','2027학년도'))
+        if year is None:raise ValueError('year에는 네 자리 연도가 필요합니다.')
+        title=meta.get('body_title',f"{meta.get('year','2027학년도')} {meta.get('exam','모의고사')} 문제지")
+        settings=f'elective: {json.dumps(elective,ensure_ascii=False)}, year: {year[0]}, title: {json.dumps(title,ensure_ascii=False)}, '
+    source+=(f'#exam-page("{profile}", [], [], {settings}page-no: {i}, total: {len(pages)}, last-page: {str(i==len(pages)).lower()}, auto-flow: true, '
              f'heading-commands: json({json.dumps(relative(front),ensure_ascii=False)}), overlay: source-commands(json({json.dumps(relative(body),ensure_ascii=False)})))\n')
 output.write_text(source,encoding='utf-8')
 (ASSETS/'manifest.json').write_text(json.dumps(dict(pages=len(pages),questions=[q['n'] for q in request['questions']],hancom=False,profile=profile,question_spacing=spacing),ensure_ascii=False,indent=2),encoding='utf-8')

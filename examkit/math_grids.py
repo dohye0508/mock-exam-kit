@@ -4,8 +4,8 @@ import re
 
 DELIMITERS = {'matrix': ('.','.'), 'pmatrix': ('(',')'), 'bmatrix': ('[',']'),
               'Bmatrix': ('{','}'), 'vmatrix': ('|','|'), 'Vmatrix': ('|','|'),
-              'cases': ('{','.')}
-ENVIRONMENT = re.compile(r'\\(begin|end)\{([A-Za-z]+)\}')
+              'cases': ('{','.'), 'array':('.','.'), 'aligned':('.','.'), 'align':('.','.'), 'align*':('.','.')}
+ENVIRONMENT = re.compile(r'\\(begin|end)\{([A-Za-z]+\*?)\}')
 
 
 def rows(source, separator=r'\\'):
@@ -46,12 +46,21 @@ def expand(source, grids, reserved):
     result=[];start=0
     for begin,end in spans:
         result.append(source[start:begin.start()])
-        cells=rows(expand(source[begin.end():end.start()],grids,reserved))
+        body=source[begin.end():end.start()];alignment=None
+        if begin[2]=='array':
+            spec=re.match(r'\s*\{([lcr]+)\}',body)
+            if spec is None:raise ValueError('array에는 {lcr} 형식의 열 정렬이 필요합니다. 수직선·너비 지정은 지원하지 않습니다.')
+            alignment=spec[1];body=body[spec.end():]
+        cells=rows(expand(body,grids,reserved))
         if begin[2]=='cases' and len(cells[0])!=2:raise ValueError('cases는 식과 조건의 두 열이 필요합니다.')
+        if alignment is not None and len(alignment)!=len(cells[0]):raise ValueError('array 열 정렬 개수와 실제 열 수가 다릅니다.')
+        if begin[2] in ('align','align*','aligned'):
+            if len(cells[0])%2:raise ValueError('align은 좌변과 우변을 &로 나눈 열 쌍이 필요합니다.')
+            alignment='rl'*(len(cells[0])//2)
         # Private atoms never reach font lookup, and cannot shadow the user's text.
         atom=next((chr(n) for n in range(0xE000,0xF900) if chr(n) not in reserved),None)
         if atom is None:raise ValueError('한 수식에 행렬이 너무 많습니다.')
-        reserved.add(atom);grids[atom]=(begin[2],cells);result.append(atom);start=end.end()
+        reserved.add(atom);grids[atom]=(begin[2],cells,alignment);result.append(atom);start=end.end()
     result.append(source[start:])
     return ''.join(result)
 
@@ -71,7 +80,7 @@ def math_parser(output, source):
 
         def symbol(self, expression, location, tokens):
             if tokens['sym'] not in self.grids:return super().symbol(expression,location,tokens)
-            name,cells=self.grids[tokens['sym']]
+            name,cells,alignment=self.grids[tokens['sym']]
             boxes=[]
             for row in cells:
                 line=[]
@@ -89,8 +98,9 @@ def math_parser(output, source):
             for row in boxes:
                 pieces=[m.Vbox(em*.8,em*.2)]
                 for i,(cell,width) in enumerate(zip(row,widths)):
-                    if i:pieces.append(m.Hbox(em))
-                    pad=(width-cell.width)/2 if name!='cases' else 0
+                    if i:pieces.append(m.Hbox(em*(.2 if i%2 else 2) if name in ('align','align*','aligned') else em))
+                    align=alignment[i] if alignment else 'l' if name=='cases' else 'c'
+                    pad=(width-cell.width)*{'l':0,'c':.5,'r':1}[align]
                     pieces.extend([m.Hbox(pad),cell,m.Hbox(width-cell.width-pad)])
                 if lines:lines.append(m.Vbox(0,em*.2))
                 lines.append(m.Hlist(pieces,do_kern=False))

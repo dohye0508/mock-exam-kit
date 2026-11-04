@@ -9,14 +9,15 @@ import pymupdf
 
 
 def engine_root():
-    root = Path(os.environ.get('EXAMKIT_TYPST_ROOT', '')).expanduser().resolve()
+    root = Path(os.environ.get('EXAMKIT_TYPST_ROOT') or Path(__file__).resolve().parents[1] / 'runtime').expanduser().resolve()
     if not (root / 'scripts/compose.py').is_file() or not (root / 'fonts').is_dir():
         raise RuntimeError('EXAMKIT_TYPST_ROOT를 우리가 만든 조판 시스템 폴더로 지정하세요 (scripts/compose.py, fonts/ 필요).')
     return root
 
 
 def executable():
-    path = os.environ.get('TYPST_EXE') or shutil.which('typst')
+    bundled=engine_root() / 'bin' / ('typst.exe' if os.name=='nt' else 'typst')
+    path = os.environ.get('TYPST_EXE') or shutil.which('typst') or str(bundled)
     if not path or not Path(path).is_file():
         raise RuntimeError('Typst를 PATH에 추가하거나 TYPST_EXE를 실행 파일로 지정하세요.')
     return path

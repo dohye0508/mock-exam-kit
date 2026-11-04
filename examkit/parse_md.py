@@ -118,6 +118,15 @@ def _add_block(q, kind, kv, block):
     block = [b for b in block]
     if kind == "box":
         q["blocks"].append(("box", [b for b in block if b.strip() or True]))
+    elif kind == 'passage':
+        if not any(line.strip() for line in block):raise ValueError('공통 지문이 비어 있습니다.')
+        if 'passage' in q:raise ValueError('한 문항에 공통 지문을 두 번 지정할 수 없습니다.')
+        span=kv.get('range',str(q['n']))
+        if not re.fullmatch(r'\d+(?:[-~]\d+)?',span):raise ValueError('지문 range는 1-3 또는 1처럼 지정하세요.')
+        bounds=[int(x) for x in re.split('[-~]',span)]
+        if bounds[0]!=q['n'] or bounds[-1]<bounds[0]:raise ValueError('지문 범위는 현재 문항에서 시작해야 합니다.')
+        q['passage']=dict(first=bounds[0],last=bounds[-1],items=block,
+                          prompt=kv.get('prompt','다음 글을 읽고 물음에 답하시오.').replace('_',' '))
     elif kind == "code":
         q["blocks"].append(("box", ["[코드]"] + block if kv.get("title", "1") == "1" else block))
     elif kind == "table":
@@ -186,6 +195,8 @@ def check(meta, questions):
             problems.append("정답 %s 분포 치우침: %s" % (MARKS[k - 1], dict(dist)))
             break
     for q in questions:
+        if 'passage' in q and q['passage']['last']>max(item['n'] for item in questions):
+            problems.append(f'{q["n"]}번 공통 지문 범위가 문항 수를 넘습니다.')
         if q["answer"] is None:
             problems.append("%d번 정답 없음" % q["n"])
         elif q["answer"] not in range(1, 6):

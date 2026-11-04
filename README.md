@@ -26,7 +26,7 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 �
 
 | 대상 | 실제 원본/구현 | 수정할 곳과 실행기 | 반드시 함께 읽을 문서 |
 |---|---|---|---|
-| 문제 본문(2단) | 외부 엔진의 과탐·사탐 원본 HWP 서식과 자동 배치 | 내용은 `content/N교시.md`. `examkit/parse_md.py` → `examkit/typst_body.py`·`_typst_engine.py` → Typst | [HWPX 배치 노트](docs/hwpx-layout-notes.md), 아래 MD 문법 |
+| 문제 본문(2단) | 원본 엔진의 국어·영어·수학·과탐·사탐 서식과 자동 배치 | 내용은 `content/N교시.md`. `examkit/parse_md.py` → `examkit/typst_body.py`·`_typst_engine.py` → Typst | [HWPX 배치 노트](docs/hwpx-layout-notes.md), 아래 MD 문법 |
 | 각 교시 표지 | 제공된 국어·수학 HWP에서 가져온 외부 Typst 엔진 (`EXAMKIT_TYPST_ROOT`) | `tools/build_cover.py` → `examkit/cover.py`; 문구는 MD 메타데이터 | [표지 양식](docs/cover-format.md) |
 | 정답 및 해설(3단) | 원본 PDF 실측값을 `tools/build_key.py`에 구현. 표 열 배분 `tools/key_tables.py`, 일반 굵기 수식 `tools/key_math.py`. 별도 HWP 원본은 없음 | 내용은 `content/N교시_해설.md`, 정답은 문항 MD. `tools/build_key.py` | [해설 양식](docs/explanation-format.md), [미리보기](docs/explanation-layout-preview.png) |
 | 독립 정답표 | `tools/answer_key.py`에 그리는 코드. 해설 안의 작은 정답표와 별개 | 문항 MD에서 정답/배점 읽기 → `tools/answer_key.py` | [재현 작업 절차](docs/reproduction-guide.md) |

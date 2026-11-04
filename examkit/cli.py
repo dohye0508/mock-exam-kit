@@ -76,7 +76,12 @@ def main(argv=None):
             raise ValueError('title에는 폴더 경로가 아닌 출력 파일 이름을 적으세요.')
         if a.only:
             lo, hi = (int(x) for x in a.only.split("-"))
-            qs = [q for q in qs if lo <= q["n"] <= hi]
+            selected = [dict(q) for q in qs if lo <= q['n'] <= hi]
+            for q in qs:
+                passage=q.get('passage')
+                if passage and selected and passage['first']<selected[0]['n']<=passage['last']:
+                    selected[0]['passage']=passage
+            qs=selected
             title += "_%s" % a.only
             meta = meta | {'pages': 'auto'}
         pdf = os.path.join(a.out, title + ".pdf")
