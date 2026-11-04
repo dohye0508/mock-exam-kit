@@ -1,0 +1,578 @@
+{
+  "ariblk.ttf": {
+    "sha256": "10df702864b1f89cb29ba0d6b97c04228338d16807e13e8d8c74b91aba5e5f23",
+    "bytes": 167592
+  },
+  "Batang-native.ttf": {
+    "sha256": "b0efded2b37eec402cc53c47c43ff80eb82688a43b5c5a88f67482b72d675434",
+    "bytes": 16114580
+  },
+  "cover-native-circle.otf": {
+    "sha256": "3dd8191e6d670a35bb19c7c7a1518bd0d0e026755bae15f5fcb82e0c68b3e15d",
+    "bytes": 1068
+  },
+  "ENGGT.otf": {
+    "sha256": "7152be62ce17215e4fd1558e203ce5a90832f7587ee2cdbbe491ad696dce2e04",
+    "bytes": 9908
+  },
+  "english-native-2014.otf": {
+    "sha256": "079afb564e2c853889b5f276b58e54fd58ec2c6768b9efbafbf86f28f6bbb030",
+    "bytes": 1000
+  },
+  "english-native-2219.otf": {
+    "sha256": "176a022cf9a664c17c1bba7675522d7086eea15d1de73485729dbec8a5261ed7",
+    "bytes": 1004
+  },
+  "english-native-25e6.otf": {
+    "sha256": "017a5c16a65019c60191237ab2c960d0e34999ce5805e00d39514e7e29b1840e",
+    "bytes": 1060
+  },
+  "english-native-5171.otf": {
+    "sha256": "4f7f0b972e25debfed1cb12a0f5bb638552c6e872a4ce2394c32e5d3913c188d",
+    "bytes": 1272
+  },
+  "english-native-985e.otf": {
+    "sha256": "3ba76a41a5a77da1da9722cc212bf227dbcdb07f3e8e2e6f6f7c2e58e47f77f2",
+    "bytes": 1796
+  },
+  "english-native-9cf4.otf": {
+    "sha256": "625950b655f9f7b715d0305dcd97bdb241b24b7120a68ba61cb26ecace710a30",
+    "bytes": 1552
+  },
+  "ENGMJ.otf": {
+    "sha256": "92266fa5fc245bca19ab0da185e765b4e3460e4531af9ecb3019934a99d97237",
+    "bytes": 11884
+  },
+  "ENJGT-horizontal-bold.otf": {
+    "sha256": "1b8d5b6414cf2579c32a8d82ab39035285b84c3cf093bdab1392977861b2590a",
+    "bytes": 8508
+  },
+  "ENJGT.otf": {
+    "sha256": "f80b67d6a742276b2586db8b5fdaa64a32574235201a63b708632d9d4fa8d819",
+    "bytes": 9548
+  },
+  "ENSMJ-horizontal-bold.otf": {
+    "sha256": "9f9b1b3453604f211fe93f9ada2468094ea8aae55dc2dbe6df422e00c7fdef04",
+    "bytes": 11000
+  },
+  "ENSMJ-native-symbols.otf": {
+    "sha256": "83976891e4835b63000b6a6e53d9954e53c84b617e14040a8ee4fa258bced1bf",
+    "bytes": 1024
+  },
+  "ENSMJ.otf": {
+    "sha256": "09273ec58bbb4ff114fbad6a4037832a026239213ca0daf595ff769d8bbc83f1",
+    "bytes": 11916
+  },
+  "Gulim-native-fallback.ttf": {
+    "sha256": "67133db4e2c8d5dd6426ad4d10cb4f15bbcc47ecd3beca79d6a26ccddcd26de6",
+    "bytes": 13086528
+  },
+  "H2GTRE.TTF": {
+    "sha256": "820d3212f688b546a327ea43a7202e3379cdbbd767ebac9753997e3f3d285171",
+    "bytes": 3485364
+  },
+  "H2GTRM.ttf": {
+    "sha256": "0b18f81f9d463f6c498853af3bdad577e9c881a5b59dc7ef4c43287588d696d5",
+    "bytes": 3274536
+  },
+  "H2HDRM.TTF": {
+    "sha256": "e50c7200521c3ea59840e5dd42e79708905a74a607f2300ed862fe2491caf831",
+    "bytes": 1169072
+  },
+  "H2MJRE.TTF": {
+    "sha256": "2fda1cc69297fe605ee8804984d26666c2543b0ec22b8f50031123a18d81924e",
+    "bytes": 6367340
+  },
+  "HANBatangB.ttf": {
+    "sha256": "91da0dde2995484b69fed48b01c27206dbce952a2b4820d70d0264d385b585b5",
+    "bytes": 30691556
+  },
+  "HancomEQN.ttf": {
+    "sha256": "9683b9dafd30cdd011101d2a870bf82630fa341c09668b9f432c52a945ae7f82",
+    "bytes": 241564
+  },
+  "HBATANG-native-fallback.ttf": {
+    "sha256": "35f84328500fc2c3ee0b148aa75de0ed384bf9eee8dee9148c01b0a11a27fe05",
+    "bytes": 32361044
+  },
+  "HCENTGT.otf": {
+    "sha256": "581ac1635bd0bf9fc4a174b167c0d3c0684da2f3cc17854bcae9a76903a6e55c",
+    "bytes": 9316
+  },
+  "HCHGTGT.otf": {
+    "sha256": "753683b8e402fe97c2863c3b8d5d0401d408cb05b13042ee4bf224d0ebb40ce8",
+    "bytes": 502720
+  },
+  "HCSPDNR-horizontal-bold.otf": {
+    "sha256": "0600cd407144a86f86fc9e4f8c782b6935f27b1088f2e389f8c5a23e2ea74275",
+    "bytes": 127504
+  },
+  "HCSPDNR.otf": {
+    "sha256": "e200064ac1f7d2daa79e392a8967ccfa7d66e76df685e47817baa752b1dd2540",
+    "bytes": 150512
+  },
+  "HCSPSGRP-horizontal-bold.otf": {
+    "sha256": "082321bfaeb370c1eac7da9aa1a8cd847a30af5dceab72ab3c0edfd1cf2573a4",
+    "bytes": 119428
+  },
+  "HCSPSGRP.otf": {
+    "sha256": "049459f4e27d37d244812a40d19e458d2d0962f528fbdc1c37cbed51fe875f1c",
+    "bytes": 142948
+  },
+  "HCSPTGT-horizontal-bold.otf": {
+    "sha256": "1b6e68b2b798373166918fb6deaa7fb9df52f1df6e688905cdc6fe88a541ea57",
+    "bytes": 113528
+  },
+  "HCSPTGT.otf": {
+    "sha256": "98cc8da22363f7ca1e16f750f51578f0d9671a1509af1b64db88e4f181bf66f3",
+    "bytes": 136180
+  },
+  "HGGGT.otf": {
+    "sha256": "e7e0a67e52245553d43199ab0a3b4db05cc423a1664b8afdeb37f2e3ce60d103",
+    "bytes": 466844
+  },
+  "HGGMJ.otf": {
+    "sha256": "5e82bbbc66e9b751bd92a874e943b129673e8e110705c62921f6c9146a7944db",
+    "bytes": 758168
+  },
+  "HGJGT-horizontal-bold.otf": {
+    "sha256": "bed1d7273823ffd29280044a3b9817ba45e529c190083ac410bcac57a9d07c97",
+    "bytes": 395760
+  },
+  "HGJGT.otf": {
+    "sha256": "692ad9e24de03eda664b8b55893573604285876cf79f98c9c69122190baeaef4",
+    "bytes": 432708
+  },
+  "HGOLD.otf": {
+    "sha256": "4382433b9c2ae25d95cabd6efd41c6d07dff5f8a8932d8f069c796a1b7ec1aa4",
+    "bytes": 7920
+  },
+  "HGSMJ.otf": {
+    "sha256": "455a07c5447febbf58d758daacb139fc6e9790bfba8b8348414aef9467dfa925",
+    "bytes": 817372
+  },
+  "HJSMJ.otf": {
+    "sha256": "acd06557f55ada0820a4fe2122090ea1ead865afa1d49612af82afba12c5a566",
+    "bytes": 2164764
+  },
+  "HMKMG-horizontal-bold.otf": {
+    "sha256": "6d776f83f686f59516a8110f850f6a32c85173c00694da1dc9a447dbe8ff4905",
+    "bytes": 2060212
+  },
+  "HMKMG.otf": {
+    "sha256": "7ef4c408ef293f765c5e7a399e377b25e29bcc4a9ba8c172ed926157f1728207",
+    "bytes": 2290992
+  },
+  "HMKSM-horizontal-bold.otf": {
+    "sha256": "62b121bdb7d120f90e98bd9a57e6607251cd012dcb73f83c9c90bbc9a66729c3",
+    "bytes": 5016064
+  },
+  "HMKSM.otf": {
+    "sha256": "73c3a536e2b471f3d0282a9d77afca0640941b38f96033f41afec70099da16b2",
+    "bytes": 4474464
+  },
+  "HYHWPEQ.TTF": {
+    "sha256": "a3a3cd992a89ac38e7707b58143ebdb1da9511d3c462f019cda7f92c30467807",
+    "bytes": 155612
+  },
+  "korean-native-200b.otf": {
+    "sha256": "d49e19e7874ffb9b976d2343a24d9c4987903ab69b577026684c9501d08641eb",
+    "bytes": 964
+  },
+  "korean-native-21e8.otf": {
+    "sha256": "a9b1f50ddfc2d3ef722c0cd4d87a4e9b5a5e1c6e7d366da115d74209d50bcbf7",
+    "bytes": 1040
+  },
+  "korean-native-24b6.otf": {
+    "sha256": "7a882e45c3ef5976edc561c7125af477a717f8d249f71cacc7fe4bbdcfa38b45",
+    "bytes": 1156
+  },
+  "korean-native-4e00.otf": {
+    "sha256": "00f24a2c15ee95282a62daa2688f12956229c24b9ae3018fe23e3988e418d344",
+    "bytes": 1024
+  },
+  "korean-native-4e01.otf": {
+    "sha256": "605528463e99e935cf73b61975df7615885e44e8abed215e19e3aa023838954d",
+    "bytes": 1076
+  },
+  "korean-native-4fd7.otf": {
+    "sha256": "c56eedbd16946016048dc70d81f83d2e9730c5b3c3eb6936724e711d8156689f",
+    "bytes": 1428
+  },
+  "korean-native-5145.otf": {
+    "sha256": "06de833a560b4364294599db156b88560c0710b03ef84472e3f2fdce01d15444",
+    "bytes": 1368
+  },
+  "korean-native-51fa.otf": {
+    "sha256": "9f6d50a3bfe28f3b1d6f7a5a8e46d3cb1fd700c6212d52acf1f834a709da4d89",
+    "bytes": 1268
+  },
+  "korean-native-52d9.otf": {
+    "sha256": "db79adc52231dc73a580ff5b531dcda40d0e0b15df9675a8a4513eebc86b4a15",
+    "bytes": 1672
+  },
+  "korean-native-5316.otf": {
+    "sha256": "ccbc545294b7b26c6b7bbf9dd4e14586896f520871a1f3e40f03e8ed169b4cad",
+    "bytes": 1244
+  },
+  "korean-native-53cd.otf": {
+    "sha256": "a26756062bcd65ceab94744111f8f571a9bcde5bd53d1d2e88f44c536bd835f3",
+    "bytes": 1224
+  },
+  "korean-native-55ae.otf": {
+    "sha256": "1f7ae649db347f53ab13cc7ac2f317bcd2520e89257699ca02a600dce7544141",
+    "bytes": 1476
+  },
+  "korean-native-571f.otf": {
+    "sha256": "bfcdfe56e5a3ae4f30b6a64c1da76cd5f61081c8698e7ec59bc0c7ac6eb52498",
+    "bytes": 1116
+  },
+  "korean-native-5929.otf": {
+    "sha256": "1a540561735c195a9188efddefbfcd1398f5b9130621818f592f9e336e7c0691",
+    "bytes": 1196
+  },
+  "korean-native-5b50.otf": {
+    "sha256": "9ed5e462a898728dd88532f16835004757cec6ab80531d7b6f44fae492bdbaf1",
+    "bytes": 1192
+  },
+  "korean-native-5b8c.otf": {
+    "sha256": "7cd83954661624444829855e127f2643cfa833447144d8867f34b3c180225972",
+    "bytes": 1308
+  },
+  "korean-native-5bb6.otf": {
+    "sha256": "98f4fc6de7f7d49b3fd81f75a99f71804946ed1077e71631c868d83cf82bce6e",
+    "bytes": 1464
+  },
+  "korean-native-60f3.otf": {
+    "sha256": "07574f807bf01ba14b1aa219a689aa20866a00296e57434063171e8492949b42",
+    "bytes": 1532
+  },
+  "korean-native-6210.otf": {
+    "sha256": "a9546cfe99e93e45eff04a0d3ec39a6a1942823ce5b590018614005092e30f5a",
+    "bytes": 1416
+  },
+  "korean-native-64f4.otf": {
+    "sha256": "4f56ec740b3870d6b7b1c913c2ab0585d036ee447dd4cfa29f863d4200a911b8",
+    "bytes": 1808
+  },
+  "korean-native-6b3a.otf": {
+    "sha256": "7810c0b8751d13e5a35ad0624d9b83ef2174b60e505b331da70ebb0f383a1c8c",
+    "bytes": 1516
+  },
+  "korean-native-6c11.otf": {
+    "sha256": "b0cacf935b0cc648a026101415f4b616d711d45f115f263fcbd65f3a08d500e8",
+    "bytes": 1292
+  },
+  "korean-native-7269.otf": {
+    "sha256": "65121f48558a59bdf2ddf61569582ffa9bbd56c78fabbd927774c12645382073",
+    "bytes": 1452
+  },
+  "korean-native-7530.otf": {
+    "sha256": "72faf980a47b78b7ba16e80af6c49383ff373a3c927a4e4ba1f998cdf5231fcf",
+    "bytes": 1156
+  },
+  "korean-native-7532.otf": {
+    "sha256": "295133af9ed41f4a59147a47f0b481eb45ebd490f9c48c6aa5cfd0e25822174d",
+    "bytes": 1188
+  },
+  "korean-native-7587.otf": {
+    "sha256": "69bee03a30b11576a75485b88cc7f5b8003d2970de69aaaa9741a77a5b5ba133",
+    "bytes": 1816
+  },
+  "korean-native-779e.otf": {
+    "sha256": "548af1da383297e2329ed9d0cd835bfff5bfa36a86e102e14a5a78b0497a9a76",
+    "bytes": 1768
+  },
+  "korean-native-7a7a.otf": {
+    "sha256": "9569807528633738097d40afa018e7c230084c884cf449ec454b5f3937f3f578",
+    "bytes": 1316
+  },
+  "korean-native-820d.otf": {
+    "sha256": "b666c7d4fd702c1b0f24f1a326f206206a3978479ecdeb6df1f2db2997317805",
+    "bytes": 1328
+  },
+  "korean-native-8868.otf": {
+    "sha256": "94f62a97565cfd35fa659bd567eaed601e9d29d10e8196e0dea5326c4e36143f",
+    "bytes": 1396
+  },
+  "korean-native-897f.otf": {
+    "sha256": "1186da3aae18491b62671dced31b67fc464e4356d77be99a263472b53f5d31df",
+    "bytes": 1300
+  },
+  "korean-native-8981.otf": {
+    "sha256": "df6883d2f53e533b38927c5b111143b2dfd478f857e6c360e8d386a950610ee4",
+    "bytes": 1464
+  },
+  "korean-native-8acb.otf": {
+    "sha256": "66b44c668e4cdfa057266bc00769dd067361c0190431f67b5c6bb663c9bfd0d4",
+    "bytes": 1644
+  },
+  "korean-native-8ecd.otf": {
+    "sha256": "9d251917e0ab560a3e5535d2ed52fe70910ced6863233dafd9822e5a0b93dd04",
+    "bytes": 1416
+  },
+  "korean-native-958b.otf": {
+    "sha256": "0c79a3398fc71bdd6885593561372d8710aaf3603cec6dd950ab58ed136e8d14",
+    "bytes": 1500
+  },
+  "korean-native-e17a.otf": {
+    "sha256": "fc103f12afbd05af5c67ac7a52f597c2c46d1e6975d629d3cf16c89df7e7b34d",
+    "bytes": 1316
+  },
+  "korean-native-e1a7.otf": {
+    "sha256": "392af06c80a489d12ccff08d41b1e5933dfd9fe915fb2c3b0abac3fb105fd797",
+    "bytes": 1128
+  },
+  "korean-native-e1c2.otf": {
+    "sha256": "8edb3604fa03f1949c530347a2dfb2a0ba647de94c7fdce7425f95a22581ebd1",
+    "bytes": 1192
+  },
+  "korean-native-e288.otf": {
+    "sha256": "5896203208d2bf92b3453efdfd8db8325f390ecc240f9e461267ab6a2f2744e4",
+    "bytes": 1276
+  },
+  "korean-native-e38a.otf": {
+    "sha256": "dd123713a97ba74c04eb274dea993a3eb6fb3d5e8f405831e6d40e23b5c309ab",
+    "bytes": 1144
+  },
+  "korean-native-e40a.otf": {
+    "sha256": "52c625125b2851b3a9e45fd2ea525f3c04daa3c8f12a8394c7a8dd13f04c0fff",
+    "bytes": 1304
+  },
+  "korean-native-e474.otf": {
+    "sha256": "97306e7295a1badab80bbd5c6f670bff3b14f6c4ff0bb60b45373b453b150d29",
+    "bytes": 1420
+  },
+  "korean-native-e560.otf": {
+    "sha256": "bbc55c3599073fcddb42a468442774813f38d6ed9b67bdc82817dcd5637759a4",
+    "bytes": 1160
+  },
+  "korean-native-e566.otf": {
+    "sha256": "fc96bed5f5b67dec8db90f65850e5ce4259169211f4915190f483dcd2383adba",
+    "bytes": 1304
+  },
+  "korean-native-e79c.otf": {
+    "sha256": "7e552cc71c058891348a5962f78a45286aba833c2750d336e2a3062816ac1ddf",
+    "bytes": 1400
+  },
+  "korean-native-e8a7.otf": {
+    "sha256": "b2f6e3a0c6204f568970802be03ac2312c7dbcf05ca6bb81a6005b3d83732e25",
+    "bytes": 1228
+  },
+  "korean-native-e8b2.otf": {
+    "sha256": "0cc5dbee6e54c37fe71df0613edea9befbbf3f49d562ecf83abad2679fba64e1",
+    "bytes": 1264
+  },
+  "korean-native-e95b.otf": {
+    "sha256": "03fc0e28cfbe15202484fd5dc55d9e1a30409a0680b02233badd7db90699df32",
+    "bytes": 1236
+  },
+  "korean-native-eb66.otf": {
+    "sha256": "31d320f7f2a5aaa43ea1c6d2f19403539c0ce45ad96afee491d624bb28dbdb0c",
+    "bytes": 1256
+  },
+  "korean-native-eb68.otf": {
+    "sha256": "7e5185877c96f8d68b3ee1b2ad9c7244a8a63e35ad3be6887d1050bacec33a96",
+    "bytes": 1348
+  },
+  "korean-native-ebd4.otf": {
+    "sha256": "01eb630f829a67272e87f7dc8c2c30ce778d8d7f4cef595e1189bdbab5ee2723",
+    "bytes": 1204
+  },
+  "korean-native-ecf0.otf": {
+    "sha256": "4b7c55930c51a2bb02f7512e0d816894f79491526a88e1c7cfd0f229c95b1d08",
+    "bytes": 1096
+  },
+  "korean-native-ecfb.otf": {
+    "sha256": "d3e735f7d0266295a5c24836d48a08c665bc9c993467dfb88abb03aee2832b0b",
+    "bytes": 1124
+  },
+  "korean-native-ed41.otf": {
+    "sha256": "c6a405f5374af9e91bdd3864bd8c988274a9460965ca9d72c7aa2f7c6d64d64f",
+    "bytes": 1132
+  },
+  "korean-native-ed98.otf": {
+    "sha256": "427abcae0be5887604e904423d18eccdbc0bf28329efcd7515cb76ec1770d15e",
+    "bytes": 1208
+  },
+  "korean-native-ed9a.otf": {
+    "sha256": "b386905c65936e5cbc692c95e2b4d3e3ed39f8d338ed864537678099e6e6e24f",
+    "bytes": 1192
+  },
+  "korean-native-f152.otf": {
+    "sha256": "9070265ea41ce9cc7b8121f9a7049e0033aa618c1ea0ba8cac51eaa5ebcad913",
+    "bytes": 1168
+  },
+  "korean-native-f154.otf": {
+    "sha256": "3a06ff0d07cf9fb367970f95a48961005396946f72bf5c5857d96ce1e1147aea",
+    "bytes": 1124
+  },
+  "korean-native-f1c4.otf": {
+    "sha256": "780c7274db796f180f48d0e0942af3938a20d8c72ca54cb72998a4d9d1eb8452",
+    "bytes": 1284
+  },
+  "korean-native-f537.otf": {
+    "sha256": "04b11f3de8e5b7eed4ebb447f22bfb33e8ed6e6fd2abd7f1ee58384704a1c5ac",
+    "bytes": 1192
+  },
+  "native-3260.otf": {
+    "sha256": "351e048924e404f75307f28e44f9c5ee2cd6c4df82e85167a777e0c0023da7ca",
+    "bytes": 1108
+  },
+  "native-3261.otf": {
+    "sha256": "6981a6f3293aefd7ff1dc538475373efa3ee55307fa083990de0e202e77fb231",
+    "bytes": 1080
+  },
+  "native-3262.otf": {
+    "sha256": "1485c8863918a0a06de10df8117db21ba02c02703028f5872574e130c2891637",
+    "bytes": 1108
+  },
+  "social-native-00d7.otf": {
+    "sha256": "59bd0efc2efec4859bdfdb5e2f9dcafa3b1a7800d01d311c82ee863c635a3054",
+    "bytes": 1032
+  },
+  "social-native-4eba.otf": {
+    "sha256": "a90931d67097107fb08e2b7993459146a539a5dabb3e0c53711857954fdd756d",
+    "bytes": 1052
+  },
+  "social-native-6545.otf": {
+    "sha256": "437c841f0415b32f503edb5a63d12263559ce417cd9d71689a6d9199abf9b8f9",
+    "bytes": 1284
+  },
+  "social-native-975e.otf": {
+    "sha256": "b9f84a90a721d081e1f8c38cfc567f429c308d0d89b418eea37fa23eca28bb0c",
+    "bytes": 1192
+  },
+  "SPJGT-horizontal-bold.otf": {
+    "sha256": "072c1e66b0b1442035f1d1041fe85cd3e6c5f92671c87d17e9d5f8fc0a623da9",
+    "bytes": 33716
+  },
+  "SPJGT.otf": {
+    "sha256": "eec339ce7e52ad33c62c4f6605fdfd6ea06471a6a69ce709f3fc9c9c052f242f",
+    "bytes": 34856
+  },
+  "SPMJ-native-bitmaps.otf": {
+    "sha256": "038d40ba85e55fc39fbf6bfbde39cdc3dd9a1d9722d0b0237a5bf111c046e2f1",
+    "bytes": 2652
+  },
+  "SPSMJ-circle-native-symbols-horizontal-bold.otf": {
+    "sha256": "54359531ac162bfb5c785ee1c78f3413183a1099d1fdec984791452e0529f429",
+    "bytes": 1356
+  },
+  "SPSMJ-circle-native-symbols.otf": {
+    "sha256": "95bbf1735e2506b8e0addc4cfcd39be8c4ad2eceb9b3b0021387d44b129824e2",
+    "bytes": 1132
+  },
+  "SPSMJ-horizontal-bold.otf": {
+    "sha256": "b454adc9fef4c8f61ec8a46f071025bb44cfcfea7bb1f0440e091c4f742ff72e",
+    "bytes": 140596
+  },
+  "SPSMJ-native-symbols.otf": {
+    "sha256": "3706096271a0dd680a8f5b110d67e96caf7510a6114be0de475893907410f560",
+    "bytes": 1072
+  },
+  "SPSMJ.otf": {
+    "sha256": "c5ebe7e58a7410bbd0000a6e53725f5356aedb69dd9bb8c9204f054265267ddb",
+    "bytes": 136668
+  },
+  "TEDNREN.otf": {
+    "sha256": "b30b5d2e34be49a7d836ba6e481073c9650253b12ea9dbbf4da25feef5beb918",
+    "bytes": 10652
+  },
+  "TEDNRHG.otf": {
+    "sha256": "643dd224adbfbc4391607b46ee4d3ec946b44e6d42ee9b75fe04d115060ffe1a",
+    "bytes": 742688
+  },
+  "TEGGTSP-horizontal-bold.otf": {
+    "sha256": "b06b4ab83d753e093ed817318d62202f0ee1adf382302b286234d56afd73586a",
+    "bytes": 112152
+  },
+  "TEGGTSP.otf": {
+    "sha256": "2e207743610a606433414877bbd8a074f8719de80bb5c11c911d67331a032943",
+    "bytes": 115008
+  },
+  "TEGMJEN.otf": {
+    "sha256": "b8480b606e16ef31c493120cc61106d91617a29e499708cdd54df4df39bb2b0a",
+    "bytes": 12308
+  },
+  "TEGMJHG.otf": {
+    "sha256": "0fdb499346b77ca739465cc1499bd722585d582c996a7a72ecb25e5fa693f682",
+    "bytes": 939756
+  },
+  "TEGMJSP-horizontal-bold.otf": {
+    "sha256": "a546242cddee4c08bc5dfd1462cf5e867aec64f9861c1cc838233cf1a3fc8198",
+    "bytes": 160148
+  },
+  "TEGMJSP.otf": {
+    "sha256": "f5251e9b325952af5d99bd9c325835b59da277fe0691c84db5a6538a19a4eccf",
+    "bytes": 147676
+  },
+  "TEJGTEN.otf": {
+    "sha256": "afd9847e211da43bf22d6f721e71ce174e7ccc060d47fe021d3603b0fc1ec2b4",
+    "bytes": 9400
+  },
+  "TEJGTHG-horizontal-bold.otf": {
+    "sha256": "1f12109624d53e5262a8f4b435619710478b164e5baca76a2c5919c579dabc07",
+    "bytes": 561004
+  },
+  "TEJGTHG.otf": {
+    "sha256": "69c0e0dbdf10c3ab99d89ddaabdbb75a577d477c68968840cd8e37fc078a9246",
+    "bytes": 649744
+  },
+  "TEJMJEN.otf": {
+    "sha256": "0b7261c42e44e0a92a57a1df6a52296abe958c8e169a45060bb5e36a38ac3aaf",
+    "bytes": 12252
+  },
+  "TEJMJHG-verified.otf": {
+    "sha256": "29960ea828f097e26c2feedbfca648fa715e5eecbd34f4e4be54e9b9624810a1",
+    "bytes": 1020236
+  },
+  "TEJMJHJ.otf": {
+    "sha256": "c62dc15862bb9a3bef8ace5430f74c8d46e0c6719d9df8caf2bffb5f458f2a68",
+    "bytes": 2745888
+  },
+  "TESGREN-horizontal-bold.otf": {
+    "sha256": "4790892d0096d7982fe3302c69ef83f80baea882f817210f8a69b3e1f061bb91",
+    "bytes": 10268
+  },
+  "TESGREN.otf": {
+    "sha256": "8902e2442769fda3532c32bab31259cc8f5a5fdb9c9f54925f4e0c2ef73b7dc9",
+    "bytes": 10364
+  },
+  "TESGRHG-horizontal-bold.otf": {
+    "sha256": "d4a23bdec9a87423239b4767fe7c442740e147459678aa8f5c7b34d683c830e1",
+    "bytes": 437064
+  },
+  "TESGRHG.otf": {
+    "sha256": "fd9a614fa24fda0a19bafae827a39548ad73790aaf8dc91f457578c0ff5c723a",
+    "bytes": 521332
+  },
+  "TETGRSP-horizontal-bold.otf": {
+    "sha256": "ae90bde1089dc7de03e9be3c1917ea48d83cdfd7ce9b82c1938f4388892bbb95",
+    "bytes": 108008
+  },
+  "TETGRSP.otf": {
+    "sha256": "a5f3d64082ba75a7e9e93aa29224925c47661125f6049a1602e3658422b848ec",
+    "bytes": 109860
+  },
+  "TETGTEN.otf": {
+    "sha256": "cef2a969ee9449a5a17805f8687818524f81a017e15cae32d855beae87b3bb20",
+    "bytes": 9424
+  },
+  "TETGTHG.otf": {
+    "sha256": "7a10eb36b4dd3cea0dde5f96f854910263fa7aabeb134b78fe93bd2dff65b733",
+    "bytes": 543696
+  },
+  "times.ttf": {
+    "sha256": "931c5de5c70401d9324d5014c123802b4fb753000360ceb2f56c589403cd58c5",
+    "bytes": 1190736
+  },
+  "timesbd.ttf": {
+    "sha256": "54fbe2c70af7c85a97bed0573227e3ccc4b2486012e3ca2a40c6bc77065846f5",
+    "bytes": 1170096
+  },
+  "timesi.ttf": {
+    "sha256": "e7f7a88b65188328aea58670f955022e23c712f55679524729da1e4e03c49d88",
+    "bytes": 962864
+  }
+}

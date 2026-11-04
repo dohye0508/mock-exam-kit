@@ -6,17 +6,22 @@
 
 ## 준비와 실행
 
-Python 의존성은 `pip install -r requirements.txt`로 설치한다. 기존 조판 엔진과 추출한 원본 글꼴은 공개 저장소에 포함하지 않았다. 저장소만 복제하면 원본 글꼴이 없으므로 실행되지 않는다. `python tools/bundle_typst.py output/portable-typst`로 현재 엔진·글꼴·Typst 실행 파일을 포함한 로컬 이동용 폴더를 만든다. 이 폴더에서는 두 환경변수를 설정하지 않아도 `runtime/`을 찾는다. Python과 requirements.txt 의존성은 별도 설치하며, 원본 글꼴을 포함한 묶음은 공개 저장소에 올리지 않는다.
+엔진 Python 코드, Typst 틀, 다섯 과목과 두 표지의 양식 데이터는 저장소의 `runtime/`에 포함한다. 외부 작업 폴더나 원본 HWP는 빌드에 필요하지 않다. 글꼴 바이너리는 공개 재배포 허가가 확인되지 않아 제외하며, 보유한 정확한 글꼴 묶음을 로컬에서 가져와야 한다. 같은 이름의 다른 글꼴이나 원본 HFT 파일만으로 대체할 수 없다.
 
 ```powershell
-$env:EXAMKIT_TYPST_ROOT='C:/path/to/문제 조판'
+python -m pip install -r requirements.txt
+python tools/import_typst_fonts.py 'C:/path/to/보유한/fonts'
+# Typst가 PATH에 있으면 다음 환경변수도 생략한다.
 $env:TYPST_EXE='C:/path/to/typst.exe'
 python -m examkit build content/example.md -o output/example
-python -m examkit review content/example.md -o output/review
 python tools/build_final.py output/demo docs/examples/format-demo.md
 ```
 
-엔진과 출력은 같은 드라이브에 둔다. 엔진에는 `scripts/compose.py`, `flow.py`, `cover.py`, `exam.typ`, `original-header.typ`, 원본 `source-layout/`, HML/JSON 자료, `fonts/`가 필요하다. 수식 `HancomEQN.ttf`, 해설용 `HBATANG-native-fallback.ttf`, `H2HDRM.TTF`, `H2MJRE.TTF`, `H2GTRE.TTF`, 정답표용 `Batang-native.ttf`와 검토 안내용 `H2GTRM.ttf`도 해당 폴더에 둔다. 누락된 글꼴을 다른 글꼴로 자동 대체하지 않는다. HTML 자료 그림은 Chrome/Edge가 추가로 필요하다.
+가져오기에는 전달용 묶음의 루트 폴더도 지정할 수 있다. `python tools/import_typst_fonts.py`는 설치된 144개 원본 글꼴의 SHA-256을 검사한다. 파일 목록은 `runtime/fonts-manifest.json`에 있다. 글꼴을 내려받거나 시스템 글꼴로 대체하지 않는다. 필요한 글꼴 묶음이 없는 사람은 코드만 복제해서 PDF를 만들 수 없다.
+
+`EXAMKIT_TYPST_ROOT`는 다른 엔진을 명시적으로 쓸 때만 지정한다. 기본값은 저장소의 `runtime/`이다. HTML 자료 그림에는 Chrome/Edge가 추가로 필요하다. 로컬 검증에는 Windows와 Typst 0.15.1을 사용했다.
+
+`python tools/bundle_typst.py output/portable-typst`는 커밋된 소스·양식과 설치된 글꼴·Typst 실행 파일을 로컬 폴더로 묶는다. 임시 테스트 폴더나 미추적 개인 파일은 수집하지 않는다. 이 글꼴 포함 묶음은 공개 커밋 대상이 아니다. [엔진 구성과 양식 추출](../runtime/README.md)을 참고한다.
 
 ## 편집 범위
 
@@ -38,8 +43,8 @@ python tools/build_final.py output/demo docs/examples/format-demo.md
 
 영어·수학의 보기 상자는 해당 과목의 일반 상자에 보기 제목을 추가한 구성이다. 원본의 별도 보기 표를 그대로 이식했다고 주장하지 않는다. 정답표·해설 출력은 기존 PyMuPDF 경로를 유지한다.
 
-`EXAMKIT_TYPST_ROOT`와 `TYPST_EXE`를 설정한 뒤 `python -X utf8 -m unittest discover -s tests -v`로 실제 본문·표지 통합 검사를 실행한다. 본문 검사는 COM 모듈을 차단하고 새 문항, 메타데이터, 수식, 정답 세 가지 색, 실패 시 이전 PDF 보존을 확인한다. 전체 생성 명령도 별도 COM 차단 환경에서 실행했다.
+글꼴을 가져온 뒤 통합 검사를 켜려면 `$env:EXAMKIT_TYPST_ROOT=(Resolve-Path runtime).Path`와 `TYPST_EXE`를 설정한다. 그다음 `python -X utf8 -m unittest discover -s tests -v`로 실제 본문·표지 통합 검사를 실행한다. 본문 검사는 COM 모듈을 차단하고 새 문항, 메타데이터, 수식, 정답 세 가지 색, 실패 시 이전 PDF 보존을 확인한다. 전체 생성 명령도 별도 COM 차단 환경에서 실행했다.
 
 한글 프로그램 없이 출력된다는 것과 한글 렌더링의 모든 픽셀이 같다는 것은 다르다. 수식 배치는 MathText, 문단 배치는 기존 원본 서식 엔진을 사용하며 한글과의 완전한 렌더링 동일성은 검증되지 않았다. 분할 불가능한 큰 표/그림은 내용이나 배치를 조정해야 한다. `--reuse`는 입력 변경을 자동 검증하지 않는다.
 
-원본 저장소 PR은 사용자 검토 후 진행한다. 원본 글꼴·개인 문항·생성 PDF는 공개 커밋에 포함하지 않는다.
+원본 저장소 PR은 유지관리자의 검토 후 병합 여부를 결정한다. 원본 글꼴·개인 문항·생성 PDF는 공개 커밋에 포함하지 않는다.

@@ -27,7 +27,7 @@ python -c "import lxml, matplotlib, pymupdf, PIL, win32com.client; print('import
 ```
 
 - Python이 여러 개면 위에서 확인한 실행 파일을 이후 명령에도 동일하게 쓴다. 현재 작업 PC의 경로는 프로젝트 인수인계에만 기록한다.
-- Python·Typst와 기존 원본 조판 엔진/글꼴이 필요하다. `EXAMKIT_TYPST_ROOT`, `TYPST_EXE`는 [설정 안내](typst-migration.md)를 따른다. 한글 프로그램·COM·레지스트리 보안 모듈은 기본 빌드에 필요하지 않다.
+- Python·Typst와 로컬 원본 글꼴이 필요하며 엔진과 양식은 저장소 `runtime/`에 있다. `EXAMKIT_TYPST_ROOT`, `TYPST_EXE`는 [설정 안내](typst-migration.md)를 따른다. 한글 프로그램·COM·레지스트리 보안 모듈은 기본 빌드에 필요하지 않다.
 - 원본 글꼴은 엔진의 `fonts/`에서 읽는다. 해설·정답표도 해당 폴더의 글꼴을 사용한다. 글꼴을 생략하거나 다른 것으로 대체하지 않는다.
 - HTML 자료 그림은 Chrome/Edge headless가 필요하다. `pdftoppm` 또는 PyMuPDF로 PDF를 렌더링해 검수한다.
 - `--no-compile`(`--no-convert`)은 Typst/JSON까지만 만든다. 이 경우 PDF를 검증했다고 보고하지 않는다.
@@ -36,13 +36,13 @@ python -c "import lxml, matplotlib, pymupdf, PIL, win32com.client; print('import
 
 ### 문제 본문
 
-MD → `examkit/typst_body.py` → `_typst_engine.py` → 외부 원본 서식 엔진 → Typst PDF가 기본 경로다. 본문 틀은 `body_template: science` 또는 `social`, 표시 문구는 MD 메타데이터로 지정한다. `pages: auto`가 자동 배치를 사용한다. 생성된 `.typ`/JSON을 직접 수정하면 다음 빌드에서 덮어써지므로 지속할 내용은 MD에서 수정한다.
+MD → `examkit/typst_body.py` → `_typst_engine.py` → `runtime/` 원본 서식 엔진 → Typst PDF가 기본 경로다. 본문 틀은 `body_template: science|social|korean|english|math` 중 하나, 표시 문구는 MD 메타데이터로 지정한다. `pages: auto`가 자동 배치를 사용한다. 생성된 `.typ`/JSON을 직접 수정하면 다음 빌드에서 덮어써지므로 지속할 내용은 MD에서 수정한다.
 
-`templates/kice-sci/`, `build.py`, `hwpx.py`, `convert.py`는 이전 HWPX 구현이다. 기본 CLI는 HWPX/한글 변환을 호출하지 않는다. 다른 본문 프로필은 원본 서식과 Markdown 어댑터 양쪽을 연결해야 한다.
+`templates/kice-sci/`, `build.py`, `hwpx.py`, `convert.py`는 이전 HWPX 구현이다. 기본 CLI는 HWPX/한글 변환을 호출하지 않는다. 다섯 과목 프로필은 Markdown 어댑터에 연결되어 있다.
 
 ### 교시별 표지
 
-표지는 [현재 표지 사용법](cover-format.md)의 국어·수학 원본 기반 Typst 엔진을 사용한다. `EXAMKIT_TYPST_ROOT`와 `TYPST_EXE`를 설정한 후 `tools/build_cover.py`를 실행한다. 옛 2017 HWPX는 보존 자료이며 기본 빌더 입력이 아니다. 문구·영역·배점은 프로젝트 MD에서 지정한다.
+표지는 [현재 표지 사용법](cover-format.md)의 국어·수학 원본 기반 Typst 엔진을 사용한다. 원본 글꼴을 가져오고 Typst를 설치한 후 `tools/build_cover.py`를 실행한다. 옛 2017 HWPX는 보존 자료이며 기본 빌더 입력이 아니다. 문구·영역·배점은 프로젝트 MD에서 지정한다.
 
 원본 크기 PDF와 본문 용지에 균일 축소한 합본은 다르다. [표지 양식](cover-format.md)에 실제 용지·글꼴·치환 규칙이 있다. 합본은 표지 1쪽 + 해당 교시 본문을 반복하며, 본문의 쪽수/쪽번호는 표지를 제외한다.
 

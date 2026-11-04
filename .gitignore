@@ -15,4 +15,7 @@ __pycache__/
 build/
 # 참고 기출은 로컬에만 둔다
 assets/reference/
-runtime/
+runtime/fonts/*
+!runtime/fonts/README.md
+runtime/bin/
+runtime/generated/

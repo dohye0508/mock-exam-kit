@@ -10,8 +10,10 @@ import pymupdf
 
 def engine_root():
     root = Path(os.environ.get('EXAMKIT_TYPST_ROOT') or Path(__file__).resolve().parents[1] / 'runtime').expanduser().resolve()
-    if not (root / 'scripts/compose.py').is_file() or not (root / 'fonts').is_dir():
-        raise RuntimeError('EXAMKIT_TYPST_ROOT를 우리가 만든 조판 시스템 폴더로 지정하세요 (scripts/compose.py, fonts/ 필요).')
+    if not (root / 'scripts/compose.py').is_file():
+        raise RuntimeError('조판 엔진 runtime/scripts/compose.py가 없습니다. 저장소를 다시 받거나 EXAMKIT_TYPST_ROOT를 확인하세요.')
+    if not (root/'fonts/HancomEQN.ttf').is_file():
+        raise RuntimeError('원본 글꼴을 먼저 가져오세요: python tools/import_typst_fonts.py "보유한 묶음의 fonts 폴더"')
     return root
 
 

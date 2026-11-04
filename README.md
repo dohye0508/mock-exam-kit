@@ -10,7 +10,7 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 �
 
 [공통 제작 절차와 실행 조건](docs/agent-workflow.md)을 따른다. Gemini CLI용 `GEMINI.md`는 공통 AGENTS.md를 가져오는 진입 파일이다. 다른 환경은 해당 문서를 직접 열어 읽게 한다. 문서만으로 도구 권한이나 이미지 생성 기능이 생기지는 않는다. Nano Banana 등의 생성 기능을 실제로 사용할 수 있으면 직접 PNG를 만들고, 없으면 필요한 요청서와 미완료 작업을 남긴다. 이미지 API를 자동 연결하는 코드는 포함되어 있지 않다.
 
-표지와 필적 문구는 프로젝트 메타데이터에서 반영한다. 현재 전체 문제지 PDF 제작에는 Python·Typst·기존 조판 엔진과 원본 글꼴이 필요하다. 한글 프로그램은 실행하지 않는다. 어떤 주제든 같은 제작 절차를 적용하되, 모든 환경·문항 유형에서 무조건 자동 완성을 보장하지 않는다.
+표지와 필적 문구는 프로젝트 메타데이터에서 반영한다. 현재 전체 문제지 PDF 제작에는 Python·Typst·로컬 원본 글꼴과 저장소의 `runtime/` 엔진이 필요하다. 한글 프로그램은 실행하지 않는다. 어떤 주제든 같은 제작 절차를 적용하되, 모든 환경·문항 유형에서 무조건 자동 완성을 보장하지 않는다.
 
 ## 새 세션에서 시작하는 순서 — 필독
 
@@ -27,7 +27,7 @@ AI 작업 시작: [AGENTS.md](AGENTS.md)를 먼저 읽는다. **새 주제로 �
 | 대상 | 실제 원본/구현 | 수정할 곳과 실행기 | 반드시 함께 읽을 문서 |
 |---|---|---|---|
 | 문제 본문(2단) | 원본 엔진의 국어·영어·수학·과탐·사탐 서식과 자동 배치 | 내용은 `content/N교시.md`. `examkit/parse_md.py` → `examkit/typst_body.py`·`_typst_engine.py` → Typst | [HWPX 배치 노트](docs/hwpx-layout-notes.md), 아래 MD 문법 |
-| 각 교시 표지 | 제공된 국어·수학 HWP에서 가져온 외부 Typst 엔진 (`EXAMKIT_TYPST_ROOT`) | `tools/build_cover.py` → `examkit/cover.py`; 문구는 MD 메타데이터 | [표지 양식](docs/cover-format.md) |
+| 각 교시 표지 | `runtime/`의 국어·수학 표지 엔진과 양식 데이터 | `tools/build_cover.py` → `examkit/cover.py`; 문구는 MD 메타데이터 | [표지 양식](docs/cover-format.md) |
 | 정답 및 해설(3단) | 원본 PDF 실측값을 `tools/build_key.py`에 구현. 표 열 배분 `tools/key_tables.py`, 일반 굵기 수식 `tools/key_math.py`. 별도 HWP 원본은 없음 | 내용은 `content/N교시_해설.md`, 정답은 문항 MD. `tools/build_key.py` | [해설 양식](docs/explanation-format.md), [미리보기](docs/explanation-layout-preview.png) |
 | 독립 정답표 | `tools/answer_key.py`에 그리는 코드. 해설 안의 작은 정답표와 별개 | 문항 MD에서 정답/배점 읽기 → `tools/answer_key.py` | [재현 작업 절차](docs/reproduction-guide.md) |
 | 그림과 글상자 | 최종 PNG는 `assets/illust/`, 코드 도식은 `assets/illust/sources/`, 자료 렌더러는 `examkit/materials.py` | MD의 `figure file`·`textN`·`bubbleN`·`tableN`; 정확한 도식은 코드 | [HWPX 배치 노트](docs/hwpx-layout-notes.md), [기출 가이드](docs/visual-reference-guide.md) |
@@ -43,12 +43,12 @@ Markdown으로 문항을 쓰면 2단 Typst/PDF가 나온다. 쪽수는 각 문�
 
 ## 요구 사항
 - Python 3.10+: `pip install -r requirements.txt`
-- Typst 실행 파일과 기존 조판 엔진·원본 글꼴. 한글 프로그램·COM·pywin32는 기본 빌드에 필요하지 않다.
+- Typst 실행 파일과 로컬 원본 글꼴. 엔진과 양식은 `runtime/`에 포함한다. 한글 프로그램·COM·pywin32는 기본 빌드에 필요하지 않다.
 - 엔진은 공개 저장소에 포함되지 않는다. [Typst 설정과 지원 범위](docs/typst-migration.md)를 먼저 확인한다.
 - 선택: HTML 자료 그림은 Chrome/Edge, 실험 SVG는 CairoSVG가 필요하다.
 
 ```powershell
-$env:EXAMKIT_TYPST_ROOT='C:/path/to/문제 조판'
+python tools/import_typst_fonts.py 'C:/path/to/보유한/fonts'
 $env:TYPST_EXE='C:/path/to/typst.exe'
 ```
 
@@ -67,7 +67,7 @@ python -m examkit build content/example.md --no-compile   # Typst/JSON만
 
 ### 교시별 표지
 
-표지 기본 출력은 **Typst**다. 국어·수학 HWP에서 가져온 기존 조판 엔진과 글꼴을 `EXAMKIT_TYPST_ROOT`로 연결하고 Typst 실행 파일을 `TYPST_EXE`로 지정한다. 엔진은 이 저장소에 포함되지 않는다. 설정·문구 변경·원본 문단 번호는 [표지 사용법](docs/cover-format.md)을 따른다.
+표지 기본 출력은 **Typst**다. 국어·수학 표지 엔진과 양식 데이터는 `runtime/`에 포함한다. 원본 글꼴은 `tools/import_typst_fonts.py`로 가져오고 Typst를 PATH 또는 `TYPST_EXE`로 지정한다. 설정·문구 변경·원본 문단 번호는 [표지 사용법](docs/cover-format.md)을 따른다.
 
 ```powershell
 python tools/build_cover.py output/covers content/example.md

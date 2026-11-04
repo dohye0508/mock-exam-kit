@@ -16,9 +16,9 @@ def bundle(destination):
     destination=Path(destination).resolve()
     if destination.exists():raise FileExistsError('새 폴더를 지정하세요: '+str(destination))
     engine=engine_root();typst=Path(executable())
-    names=subprocess.check_output(['git','ls-files','-z','--cached','--others','--exclude-standard'],cwd=ROOT).decode('utf8').split('\0')
+    names=subprocess.check_output(['git','ls-files','-z','--cached'],cwd=ROOT).decode('utf8').split('\0')
     files={ROOT/name:Path(name) for name in names if name and (ROOT/name).is_file()}
-    patterns=('*.typ','equations.json','scripts/*.py','source-layout/*.json',
+    patterns=('*.typ','equations.json','fonts-manifest.json','templates/*.xml','scripts/*.py','source-layout/*.json','source-layout/*.txt',
               'output/reference/*-original.hml','fonts/*.otf','fonts/*.ttf','fonts/*.TTF',
               'fonts/*.json','assets/original/*','assets/equations/*.svg','assets/equations/manifest.json')
     for pattern in patterns:

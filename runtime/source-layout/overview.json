@@ -1,0 +1,831 @@
+{
+  "korean": {
+    "page": {
+      "GutterType": "LeftOnly",
+      "Height": "119052",
+      "Landscape": "0",
+      "Width": "84188"
+    },
+    "margins": {
+      "Bottom": "8504",
+      "Footer": "3828",
+      "Gutter": "0",
+      "Header": "0",
+      "Left": "8788",
+      "Right": "8788",
+      "Top": "15874"
+    },
+    "columns": [
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "3120",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "3120",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "3120",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      }
+    ],
+    "sections": [
+      {
+        "page": {
+          "GutterType": "LeftOnly",
+          "Height": "119052",
+          "Landscape": "0",
+          "Width": "84188"
+        },
+        "margins": {
+          "Bottom": "8504",
+          "Footer": "3828",
+          "Gutter": "0",
+          "Header": "0",
+          "Left": "8788",
+          "Right": "8788",
+          "Top": "15874"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "3120",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      },
+      {
+        "page": {
+          "GutterType": "LeftOnly",
+          "Height": "119052",
+          "Landscape": "0",
+          "Width": "84188"
+        },
+        "margins": {
+          "Bottom": "8504",
+          "Footer": "3828",
+          "Gutter": "0",
+          "Header": "0",
+          "Left": "8788",
+          "Right": "8788",
+          "Top": "15874"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "3120",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      },
+      {
+        "page": {
+          "GutterType": "LeftOnly",
+          "Height": "119052",
+          "Landscape": "0",
+          "Width": "84188"
+        },
+        "margins": {
+          "Bottom": "8504",
+          "Footer": "3828",
+          "Gutter": "0",
+          "Header": "0",
+          "Left": "8788",
+          "Right": "8788",
+          "Top": "15874"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "3120",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      }
+    ]
+  },
+  "english": {
+    "page": {
+      "GutterType": "LeftOnly",
+      "Height": "119052",
+      "Landscape": "0",
+      "Width": "84188"
+    },
+    "margins": {
+      "Bottom": "8504",
+      "Footer": "3828",
+      "Gutter": "0",
+      "Header": "0",
+      "Left": "8788",
+      "Right": "8788",
+      "Top": "16015"
+    },
+    "columns": [
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "3120",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      }
+    ],
+    "sections": [
+      {
+        "page": {
+          "GutterType": "LeftOnly",
+          "Height": "119052",
+          "Landscape": "0",
+          "Width": "84188"
+        },
+        "margins": {
+          "Bottom": "8504",
+          "Footer": "3828",
+          "Gutter": "0",
+          "Header": "0",
+          "Left": "8788",
+          "Right": "8788",
+          "Top": "16015"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "3120",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      }
+    ]
+  },
+  "math": {
+    "page": {
+      "GutterType": "LeftOnly",
+      "Height": "111685",
+      "Landscape": "0",
+      "Width": "77102"
+    },
+    "margins": {
+      "Bottom": "7086",
+      "Footer": "2551",
+      "Gutter": "0",
+      "Header": "6803",
+      "Left": "5385",
+      "Right": "5385",
+      "Top": "4251"
+    },
+    "columns": [
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "3316",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "3514",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      }
+    ],
+    "sections": [
+      {
+        "page": {
+          "GutterType": "LeftOnly",
+          "Height": "111685",
+          "Landscape": "0",
+          "Width": "77102"
+        },
+        "margins": {
+          "Bottom": "7086",
+          "Footer": "2551",
+          "Gutter": "0",
+          "Header": "6803",
+          "Left": "5385",
+          "Right": "5385",
+          "Top": "4251"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "3316",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      },
+      {
+        "page": {
+          "GutterType": "LeftOnly",
+          "Height": "111685",
+          "Landscape": "0",
+          "Width": "77102"
+        },
+        "margins": {
+          "Bottom": "5952",
+          "Footer": "3685",
+          "Gutter": "0",
+          "Header": "6803",
+          "Left": "5244",
+          "Right": "5244",
+          "Top": "4251"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "3514",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      }
+    ]
+  },
+  "social": {
+    "page": {
+      "GutterType": "LeftRight",
+      "Height": "111685",
+      "Landscape": "0",
+      "Width": "77102"
+    },
+    "margins": {
+      "Bottom": "5952",
+      "Footer": "3401",
+      "Gutter": "0",
+      "Header": "4960",
+      "Left": "5300",
+      "Right": "5300",
+      "Top": "6236"
+    },
+    "columns": [
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "3120",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "2692",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      }
+    ],
+    "sections": [
+      {
+        "page": {
+          "GutterType": "LeftRight",
+          "Height": "111685",
+          "Landscape": "0",
+          "Width": "77102"
+        },
+        "margins": {
+          "Bottom": "5952",
+          "Footer": "3401",
+          "Gutter": "0",
+          "Header": "4960",
+          "Left": "5300",
+          "Right": "5300",
+          "Top": "6236"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "3120",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      },
+      {
+        "page": {
+          "GutterType": "LeftRight",
+          "Height": "111685",
+          "Landscape": "0",
+          "Width": "77102"
+        },
+        "margins": {
+          "Bottom": "5952",
+          "Footer": "3401",
+          "Gutter": "0",
+          "Header": "4960",
+          "Left": "5300",
+          "Right": "5300",
+          "Top": "6236"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "2692",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      }
+    ]
+  },
+  "science": {
+    "page": {
+      "GutterType": "LeftOnly",
+      "Height": "111685",
+      "Landscape": "0",
+      "Width": "77102"
+    },
+    "margins": {
+      "Bottom": "5952",
+      "Footer": "3401",
+      "Gutter": "0",
+      "Header": "4960",
+      "Left": "5300",
+      "Right": "5300",
+      "Top": "6236"
+    },
+    "columns": [
+      {
+        "Count": "2",
+        "Layout": "Left",
+        "SameGap": "3118",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      },
+      {
+        "Count": "1",
+        "Layout": "Left",
+        "SameGap": "0",
+        "SameSize": "true",
+        "Type": "Newspaper"
+      }
+    ],
+    "sections": [
+      {
+        "page": {
+          "GutterType": "LeftOnly",
+          "Height": "111685",
+          "Landscape": "0",
+          "Width": "77102"
+        },
+        "margins": {
+          "Bottom": "5952",
+          "Footer": "3401",
+          "Gutter": "0",
+          "Header": "4960",
+          "Left": "5300",
+          "Right": "5300",
+          "Top": "6236"
+        },
+        "columns": [
+          {
+            "Count": "2",
+            "Layout": "Left",
+            "SameGap": "3118",
+            "SameSize": "true",
+            "Type": "Newspaper"
+          }
+        ]
+      }
+    ]
+  }
+}

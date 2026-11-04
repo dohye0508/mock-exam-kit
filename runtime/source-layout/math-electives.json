@@ -1,0 +1,140 @@
+{
+  "확률과 통계": {
+    "headers": {
+      "first": "math-probability-first-header",
+      "even": "math-probability-even-header",
+      "odd": "math-probability-odd-header",
+      "last": "math-probability-last-header"
+    },
+    "footer": "math-elective-footer",
+    "page_offset": 8,
+    "body_top": [
+      22583,
+      18055
+    ],
+    "last_body_top": [
+      15425,
+      11054
+    ],
+    "last_note": "math-probability-last-note",
+    "note_top": 91805,
+    "settings": {
+      "page": {
+        "GutterType": "LeftOnly",
+        "Height": "111685",
+        "Landscape": "0",
+        "Width": "77102"
+      },
+      "margins": {
+        "Bottom": "5952",
+        "Footer": "3685",
+        "Gutter": "0",
+        "Header": "6803",
+        "Left": "5244",
+        "Right": "5244",
+        "Top": "4251"
+      },
+      "columns": [
+        {
+          "Count": "2",
+          "Layout": "Left",
+          "SameGap": "3514",
+          "SameSize": "true",
+          "Type": "Newspaper"
+        }
+      ]
+    }
+  },
+  "미적분": {
+    "headers": {
+      "first": "math-calculus-first-header",
+      "even": "math-calculus-even-header",
+      "odd": "math-calculus-odd-header",
+      "last": "math-calculus-last-header"
+    },
+    "footer": "math-elective-footer",
+    "page_offset": 12,
+    "body_top": [
+      22583,
+      18055
+    ],
+    "last_body_top": [
+      15567,
+      11054
+    ],
+    "last_note": "math-calculus-last-note",
+    "note_top": 91805,
+    "settings": {
+      "page": {
+        "GutterType": "LeftOnly",
+        "Height": "111685",
+        "Landscape": "0",
+        "Width": "77102"
+      },
+      "margins": {
+        "Bottom": "5952",
+        "Footer": "3685",
+        "Gutter": "0",
+        "Header": "6803",
+        "Left": "5244",
+        "Right": "5244",
+        "Top": "4251"
+      },
+      "columns": [
+        {
+          "Count": "2",
+          "Layout": "Left",
+          "SameGap": "3514",
+          "SameSize": "true",
+          "Type": "Newspaper"
+        }
+      ]
+    }
+  },
+  "기하": {
+    "headers": {
+      "first": "math-geometry-first-header",
+      "even": "math-geometry-even-header",
+      "odd": "math-geometry-odd-header",
+      "last": "math-geometry-last-header"
+    },
+    "footer": "math-elective-footer",
+    "page_offset": 16,
+    "body_top": [
+      22583,
+      18055
+    ],
+    "last_body_top": [
+      15365,
+      11054
+    ],
+    "last_note": "math-geometry-last-note",
+    "note_top": 95913,
+    "settings": {
+      "page": {
+        "GutterType": "LeftOnly",
+        "Height": "111685",
+        "Landscape": "0",
+        "Width": "77102"
+      },
+      "margins": {
+        "Bottom": "5952",
+        "Footer": "3685",
+        "Gutter": "0",
+        "Header": "6803",
+        "Left": "5244",
+        "Right": "5244",
+        "Top": "4251"
+      },
+      "columns": [
+        {
+          "Count": "2",
+          "Layout": "Left",
+          "SameGap": "3514",
+          "SameSize": "true",
+          "Type": "Newspaper"
+        }
+      ]
+    }
+  }
+}

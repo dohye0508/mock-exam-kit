@@ -4,10 +4,10 @@
 
 ## 실행 환경
 
-이 브랜치는 기존 조판 엔진을 연결하는 단계다. 엔진·변환 글꼴을 이 공개 저장소에 복사하지 않았다. 준비된 엔진 폴더에는 `scripts/cover.py`의 `--export-json` 기능, `original-header.typ`, `fonts/`, `source-layout/cover-*.json`, `output/reference/cover-*-original.hml`이 있어야 한다. 저장소만 복제해서 단독 실행할 수 있는 배포 패키지는 아직 아니다.
+표지 엔진 `runtime/scripts/cover.py`, Typst 출력 코드 `runtime/original-header.typ`, 두 표지의 XML·배치 데이터는 저장소에 포함한다. 빌드에 원본 HWP나 외부 작업 폴더가 필요하지 않다. 글꼴만 공개 저장소에서 제외하므로 `tools/import_typst_fonts.py`로 보유한 글꼴을 가져온다.
 
 ```powershell
-$env:EXAMKIT_TYPST_ROOT = 'C:/path/to/문제 조판'
+python tools/import_typst_fonts.py 'C:/path/to/보유한/fonts'
 $env:TYPST_EXE = 'C:/path/to/typst.exe'
 python tools/build_cover.py output/covers content/example.md
 python tools/build_cover.py output/covers --no-compile content/example.md
