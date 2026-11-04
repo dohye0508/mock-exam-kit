@@ -35,6 +35,12 @@ def resource(path):
 
 
 class Engine(Composer):
+    def __init__(self, subject):
+        super().__init__(subject)
+        if subject=='science':
+            self.styles['@blank']=(self.root.find('.//CHARSHAPE[@Id="119"]'),self.root.find('.//PARASHAPE[@Id="98"]'))
+        else:self.styles['@blank']=self.styles['choices']
+
     def original_charshape(self, shape):
         # Overlay IDs belong to the science source, even on a social sheet.
         owner = self if self.subject == 'science' else Engine('science')
@@ -89,24 +95,40 @@ class Engine(Composer):
                     result.append(self.inline(eq)); continue
                 if part.startswith('{{frac|'):
                     a, b = part[7:-2].split('|', 1)
-                    rows = [super(Engine, self).tokens(t, role, para_shape) for t in (a, b)]
-                    height = int(self.styles[role][0].get('Height'))
-                    widths = [sum(t['advance'] for t in row) for row in rows]
-                    width = max(widths) + height * .3
-                    commands = [dict(kind='line', x=0, y=height*1.12, width=width, height=0, pen=height/28, dash=False)]
-                    for j, row in enumerate(rows):
-                        x = (width-widths[j])/2
-                        for t in row:
-                            if t['kind'] == 'text' and not t['char'].isspace():
-                                commands.append(t | dict(x=x, y=height*(.85+1.4*j)))
-                            x += t['advance']
-                    result.append(self.inline(dict(commands=commands, width=width, height=height*2.45, baseline=height*1.52))); continue
+                    result.append(self.fraction(a,b)); continue
                 underline = part.startswith('__')
                 tokens = super().tokens(part[2:-2] if underline else part, role, para_shape)
                 if underline:
                     for t in tokens: t['underline'] = dict(Type='Bottom', Shape='Solid', Color='0')
                 result.extend(tokens)
         return result
+
+    def fraction(self, numerator, denominator):
+        from extract_body_fixture import Body
+        source=Body(self.subject);index=37 if self.subject=='science' else 63
+        table=source.root.findall('./BODY/SECTION//TABLE')[index]
+        cells=table.findall('ROW/CELL');widths=[]
+        for cell,text in zip(cells,(numerator,denominator)):
+            p=cell.find('PARALIST/P')
+            cs=source.root.find(f'.//CHARSHAPE[@Id="{p.find("TEXT").get("CharShape")}"]')
+            ps=source.root.find(f'.//PARASHAPE[@Id="{p.get("ParaShape")}"]')
+            self.styles['@fraction']=(cs,ps)
+            tokens=self.tokens(text,'@fraction')
+            mg=cell.find('CELLMARGIN') if cell.get('HasMargin')=='true' else table.find('INSIDEMARGIN')
+            widths.append(sum(t['advance'] for t in tokens)-(tokens[-1].get('trailing_spacing',0) if tokens else 0)+int(mg.get('Left'))+int(mg.get('Right')))
+        width=max(1440,round(max(widths)))
+        table.find('SHAPEOBJECT/SIZE').attrib.update(dict(Width=str(width),Height='0'))
+        for cell in cells:cell.attrib.update(dict(Width=str(width),Height='0'))
+        saved=self.commands;self.commands=[]
+        try:
+            height=self.source_table(dict(table_template=index,cells={'0,0':numerator,'1,0':denominator}),0,0,width,source=source,fixed=(0,0,width,0))
+            commands=self.commands
+        finally:self.commands=saved
+        margin=table.find('SHAPEOBJECT/OUTSIDEMARGIN')
+        ml,mr,mt,mb=[int(margin.get(side)) for side in ('Left','Right','Top','Bottom')]
+        total=height+mt+mb
+        return dict(kind='inline-table',commands=commands,width=width,height=height,left_margin=ml,top_margin=mt,
+                    advance=width+ml+mr,above=total*.85,below=total*.15,can_break=True)
 
     @staticmethod
     def inline(eq):
@@ -125,44 +147,81 @@ class Engine(Composer):
         try:return super().source_box(block,x,y,width)
         finally:size.set('Width',old)
 
+    def source_table(self, block, x, y, width, **kwargs):
+        end=super().source_table(block,x,y,width,**kwargs)
+        if kwargs.get('fixed') is None and not (kwargs.get('fragment') or {}).get('remaining'):
+            source=kwargs.get('source');root=source.root if source is not None else self.root
+            table=root.findall('./BODY/SECTION//TABLE')[block['table_template']]
+            parent=next(table.iterancestors('P'))
+            pm=root.find(f'.//PARASHAPE[@Id="{parent.get("ParaShape")}"]/PARAMARGIN')
+            outer=table.find('SHAPEOBJECT/OUTSIDEMARGIN')
+            _,after=self.source_object_spacing(table)
+            end+=after-int(pm.get('Next'))/2-int(outer.get('Bottom'))
+        return end
+
+    def choices_fit_one_row(self, items):
+        table=self.root.findall('./BODY/SECTION//TABLE')[13 if self.subject=='science' else 12]
+        cells=table.findall('ROW/CELL')[1::2]
+        for item,cell in zip(items,cells):
+            p=cell.find('PARALIST/P')
+            self.styles['@choice-fit']=(self.root.find(f'.//CHARSHAPE[@Id="{p.find("TEXT").get("CharShape")}"]'),self.root.find(f'.//PARASHAPE[@Id="{p.get("ParaShape")}"]'))
+            margin=cell.find('CELLMARGIN') if cell.get('HasMargin')=='true' else table.find('INSIDEMARGIN')
+            tokens=self.tokens(item,'@choice-fit')
+            occupied=sum(t['advance'] for t in tokens)-(tokens[-1].get('trailing_spacing',0) if tokens else 0)
+            available=int(cell.get('Width'))-int(margin.get('Left'))-int(margin.get('Right'))
+            if any(t['kind']=='break' for t in tokens) or occupied>available:return False
+        return True
+
     def data_table(self, block, x, y, width):
-        if self.subject != 'social' and 'char_shape' not in block:
-            owner = Engine('social')
-            end = owner.data_table(block, x, y, width)
-            self.commands.extend(owner.commands)
-            return end
-        rows = block['rows']; columns = len(rows[0])
-        assert rows and all(len(row) == columns for row in rows), '표 열 수가 일치하지 않습니다.'
-        weights = block.get('widths') or [1]*columns
-        assert len(weights) == columns and all(w > 0 for w in weights)
-        widths = [width*w/sum(weights) for w in weights]
-        cs, ps = self.styles['choices']
-        if 'char_shape' in block: cs = self.original_charshape(block['char_shape'])
-        ps = deepcopy(ps)
-        ps.find('PARAMARGIN').attrib.update(dict(Left='0', Right='0', Indent='0', Prev='0', Next='0'))
-        self.styles['@grid'] = (cs, ps)
-        cells = []; occupied = {}; heights = [block.get('row_h', 1400)]*len(rows)
-        for r, row in enumerate(rows):
-            for c, text in enumerate(row):
-                if text == '^':
-                    assert r > 0 and (r-1, c) in occupied, '첫 행을 위로 병합할 수 없습니다.'
-                    cell = occupied[r-1, c]; cell['span'] += 1; occupied[r,c] = cell; continue
-                saved = self.commands; self.commands = []
-                end = self.paragraph(text, '@grid', 0, 0, widths[c]-400, align='Center', trim_end=True)
-                commands = self.commands; self.commands = saved
-                cell = dict(row=r, col=c, span=1, end=end, commands=commands)
-                cells.append(cell); occupied[r,c] = cell
+        rows=block['rows']; columns=len(rows[0])
+        assert rows and all(len(row)==columns for row in rows), '표 열 수가 일치하지 않습니다.'
+        weights=block.get('widths') or [1]*columns
+        assert len(weights)==columns and all(w>0 for w in weights)
+        rules=block.get('rules',True)
+        index=({'science':16,'social':50} if rules else {'science':27,'social':9})[self.subject]
+        prototype=self.root.findall('./BODY/SECTION//TABLE')[index]
+        after=0
+        if 'char_shape' not in block:
+            left=self.source_object_left(prototype,x,width)
+            width=min(int(prototype.find('SHAPEOBJECT/SIZE').get('Width')),width-(left-x))
+            before,after=self.source_object_spacing(prototype)
+            x=left;y+=before
+        widths=[width*w/sum(weights) for w in weights]
+        source_rows=prototype.findall('ROW')
+        cells=[];occupied={};heights=[block.get('row_h') or 0]*len(rows)
+        for r,row in enumerate(rows):
+            original=source_rows[0 if r==0 else 1].find('CELL')
+            if not block.get('row_h'):heights[r]=int(original.get('Height'))
+            p=original.find('PARALIST/P')
+            cs=self.original_charshape(block['char_shape']) if 'char_shape' in block else self.root.find(f'.//CHARSHAPE[@Id="{p.find("TEXT").get("CharShape")}"]')
+            ps=self.root.find(f'.//PARASHAPE[@Id="{p.get("ParaShape")}"]')
+            self.styles['@grid']=(cs,ps)
+            margin=original.find('CELLMARGIN') if original.get('HasMargin')=='true' else prototype.find('INSIDEMARGIN')
+            ml,mr,mt,mb=[int(margin.get(side)) for side in ('Left','Right','Top','Bottom')]
+            for c,text in enumerate(row):
+                if text=='^':
+                    assert r>0 and (r-1,c) in occupied, '첫 행을 위로 병합할 수 없습니다.'
+                    cell=occupied[r-1,c];cell['span']+=1;occupied[r,c]=cell;continue
+                assert widths[c]>ml+mr, '원본 셀 여백보다 열 폭이 좁습니다.'
+                saved=self.commands;self.commands=[]
+                try:
+                    end=self.paragraph(text,'@grid',0,0,widths[c]-ml-mr,trim_end=True)
+                    commands=self.commands
+                finally:self.commands=saved
+                cell=dict(row=r,col=c,span=1,end=end,commands=commands,margin=(ml,mr,mt,mb),border=original.get('BorderFill'),valign=original.find('PARALIST').get('VertAlign'))
+                cells.append(cell);occupied[r,c]=cell
         for cell in cells:
-            r, span = cell['row'], cell['span']
-            missing = cell['end'] + 300 - sum(heights[r:r+span])
-            if missing > 0: heights[r+span-1] += missing
+            r,span=cell['row'],cell['span'];ml,mr,mt,mb=cell['margin']
+            heights[r+span-1]+=max(0,cell['end']+mt+mb-sum(heights[r:r+span]))
         for cell in cells:
-            r,c,span = cell['row'],cell['col'],cell['span']
-            cx,cy = x+sum(widths[:c]), y+sum(heights[:r]); h=sum(heights[r:r+span])
-            if block.get('rules', True):
-                self.commands.append(dict(kind='rect', x=cx,y=cy,width=widths[c],height=h,pen=28,radius=0))
-            self.commands.extend(cmd | dict(x=cx+200+cmd['x'],y=cy+(h-cell['end'])/2+cmd['y']) for cmd in cell['commands'])
-        return y+sum(heights)
+            r,c,span=cell['row'],cell['col'],cell['span'];ml,mr,mt,mb=cell['margin']
+            cx,cy=x+sum(widths[:c]),y+sum(heights[:r]);h=sum(heights[r:r+span])
+            if rules:
+                start=len(self.header.commands);self.header.border(cell['border'],cx,cy,widths[c],h)
+                self.commands.extend(self.header.commands[start:])
+            dy=(h-mt-mb-cell['end'])*{'Top':0,'Center':.5,'Bottom':1}[cell['valign']]
+            self.commands.extend(cmd|dict(x=cx+ml+cmd['x'],y=cy+mt+dy+cmd['y']) for cmd in cell['commands'])
+        return y+sum(heights)+after
 
     def figure(self, block, x, y, width):
         w,h=block['size']
@@ -264,6 +323,7 @@ def image_block(payload, qn, index):
 
 def blocks(questions):
     result=[]
+    measure=Engine(request['profile'])
     for q in questions:
         if q['pb'] or q['cb']:result.append(dict(kind='page_break' if q['pb'] else 'column_break'))
         ask=q['ask'].rstrip()+('\u00a0[3점]' if q['three'] else '')
@@ -297,7 +357,7 @@ def blocks(questions):
             group.append(dict(kind='data_table',rows=cells,widths=[.35]+[1]*len(headers),rules=False))
         else:
             items=q.get('opts',q.get('set'))
-            columns=5 if q.get('inline_opts') or all(len(t)<=6 and '$' not in t and '{{' not in t for t in items) else 1
+            columns=5 if q.get('inline_opts') or measure.choices_fit_one_row(items) else 1
             choices=[marked(text,i) for i,text in enumerate(items)]
             if columns==5:
                 cells={}
@@ -308,8 +368,9 @@ def blocks(questions):
                 group.append(dict(kind='table',table_template=13 if request['profile']=='science' else 12,cells=cells))
             else:
                 group.append(dict(kind='choices',items=[[t] if isinstance(t,dict) else t for t in choices],columns=columns))
-        for b in group:b['keep_with_next']=True;b.setdefault('after_mm',1)
-        group[-1]['keep_with_next']=False;group[-1]['after_mm']=q['gap']*4
+        for b in group:b['keep_with_next']=True
+        group[-1]['keep_with_next']=False
+        for _ in range(q['gap']):group.append(dict(runs='',style='@blank'))
         result.extend(group)
     return result
 

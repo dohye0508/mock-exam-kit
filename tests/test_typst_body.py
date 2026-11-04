@@ -39,6 +39,7 @@ class BodyIntegrationTests(unittest.TestCase):
         from examkit.parse_md import parse
         from examkit.typst_body import build
         meta, questions = parse((ROOT/'docs/examples/format-demo.md').read_text(encoding='utf-8'))
+        self.assertTrue(all(q['gap']==0 for q in questions))
         with tempfile.TemporaryDirectory(dir=ROOT) as folder:
             target = Path(folder)/'prompt.pdf'
             build(meta, questions, target)
@@ -58,6 +59,9 @@ class BodyIntegrationTests(unittest.TestCase):
                 # Original HWP choice table: 1391-unit marker + 4787-unit content cells.
                 self.assertAlmostEqual(gaps[0],6178,delta=1)
                 self.assertAlmostEqual(marks[0]['x']/100,64.32,delta=.05)
+                if n+1<len(numbers):
+                    # Native source: first choice at 450.502pt, next question at 470.287pt.
+                    self.assertAlmostEqual((text[end]['y']-marks[0]['y'])/100,19.785,delta=.05)
             h=next(i for i,c in enumerate(text) if c['char']=='H')
             letter,sub,oxygen=text[h:h+3]
             self.assertEqual([letter['char'],sub['char'],oxygen['char']],['H','2','O'])
@@ -65,6 +69,14 @@ class BodyIntegrationTests(unittest.TestCase):
             self.assertAlmostEqual(sub['height'],letter['height']*.64)
             self.assertGreater(sub['y'],letter['y'])
             self.assertLess(sub['advance'],letter['advance'])
+            questions[0]['gap']=2
+            questions[0]['opts']=['iiiiiii']*5  # Seven narrow glyphs fit the original cell.
+            build(meta,questions,target)
+            commands=json.loads(target.with_suffix('.assets').joinpath('body-1.json').read_text(encoding='utf-8'))
+            marks=[c for c in commands if c.get('char') in '①②③④⑤'][:5]
+            self.assertEqual(len({c['y'] for c in marks}),1)
+            second=next(c for c in commands if c.get('char')=='2' and c['x']==5300)
+            self.assertAlmostEqual((second['y']-marks[0]['y'])/100,19.785+14,delta=.05)
 
     def test_default_cli_and_review_without_hancom(self):
         with tempfile.TemporaryDirectory(prefix='.body-test-', dir=ROOT) as folder:
@@ -110,6 +122,8 @@ table1_rowh: 6
                 self.assertIn('글상자검사', text)
                 commands = json.loads((folder/'out/example.assets/body-1.json').read_text(encoding='utf-8'))
                 self.assertTrue(any(c.get('height')==900 and c.get('char')=='글' for c in commands))
+                self.assertTrue(any(c.get('char')=='A' and c.get('height')==950 for c in commands))
+                self.assertTrue(any(c.get('char')=='입' and c.get('height')==1000 and c.get('font')=='Original HFT TEJGTHG' for c in commands))
                 for n in range(1,7): self.assertIn(f'{n}.',text)
                 self.assertGreaterEqual(len(doc),2)  # source has an explicit page break
             run('review', source, '-o', folder / 'review')

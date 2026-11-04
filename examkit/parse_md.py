@@ -55,7 +55,7 @@ def _args(s):
 
 
 def parse_question(n, header_rest, body_lines):
-    q = dict(n=n, blocks=[], pb=0, cb=0, gap=1, three=False, head="", ask="", answer=None)
+    q = dict(n=n, blocks=[], pb=0, cb=0, gap=0, three=False, head="", ask="", answer=None)
     rest = header_rest
     if "[3점]" in rest:
         q["three"] = True
@@ -120,7 +120,7 @@ def _add_block(q, kind, kv, block):
         rows = [r for r in rows if not all(set(c) <= set("-: ") for c in r)]
         widths = [int(x) for x in kv["widths"].split(",")] if "widths" in kv else None
         q["blocks"].append(("table", dict(headers=rows[0], rows=rows[1:], widths=widths,
-                                          row_h=int(kv.get("row_h", 1600)))))
+                                          row_h=int(kv.get("row_h", 0)))))
     elif kind == "figure":
         params = _kv_lines(block)
         q["blocks"].append(("figure", dict(kind=kind_of(kv, params), params=params, kv=kv)))

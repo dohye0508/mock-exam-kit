@@ -47,7 +47,7 @@ def main():
     cur = {}
     for m in re.finditer(r"^## (\d+)\.[^\r\n]*", src, re.M):
         g = re.search(r"\{gap=(\d+)\}", m.group(0))
-        cur[int(m.group(1))] = int(g.group(1)) if g else 1
+        cur[int(m.group(1))] = int(g.group(1)) if g else 0
     new = dict(cur)
     for page, side, qs, blank in columns(pdf):
         usable = blank - SAFETY_MM
@@ -63,7 +63,7 @@ def main():
         def fix(m):
             n = int(m.group(1))
             line = re.sub(r"\s*\{gap=\d+\}", "", m.group(0)).rstrip()
-            return line if new[n] == 1 else "%s {gap=%d}" % (line, new[n])
+            return line if new[n] == 0 else "%s {gap=%d}" % (line, new[n])
         src = re.sub(r"^## (\d+)\.[^\r\n]*", fix, src, flags=re.M)
         open(md, "w", encoding="utf-8", newline="").write(src)
         print("반영:", {n: g for n, g in new.items() if g != cur[n]})
