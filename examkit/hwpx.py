@@ -260,6 +260,9 @@ def databox(lines, width=COL_W):
             head = ln.startswith("@center ")
             paras.append(text_para(ln.split(" ", 1)[1], cpp, cst, STYLE["box_heading_char"] if head else cp))
             continue
+        if ln.startswith("@p "):                  # 내어쓰기 없는 줄글(소설 지문 등)
+            paras.append(text_para(ln[3:], OVERLAY_PARA["justify"], "0", cp))
+            continue
         c = STYLE["box_heading_char"] if ln.startswith("[") else cp
         paras.append(text_para(ln, pp, st, c))
     h = int(sum(_box_lines(l, width) for l in lines) * LINE_H * 0.85) + 700   # 칸은 글에 맞춰 늘어나므로 적게 어림
