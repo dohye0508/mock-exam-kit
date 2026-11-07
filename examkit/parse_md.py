@@ -96,6 +96,9 @@ def parse_question(n, header_rest, body_lines):
         elif s.startswith("@status"):
             # 검토용 표시: keep(그대로) / mod(수정) / new(새 문제·발전)
             q["status"] = s.split()[1].strip()
+        elif s.startswith("@space"):
+            # 문항 안 블록 사이에 빈 줄 N개(한 문항만 있는 단을 아래까지 채울 때)
+            q["blocks"].append(("space", int(s.split()[1])))
         elif s.startswith("@inline"):
             # 선택지를 한 줄에 늘어놓는다(글자 수 기준 자동 판정을 넘어설 때)
             q["inline_opts"] = True

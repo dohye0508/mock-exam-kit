@@ -2,6 +2,7 @@
 빌드한 PDF에서 단별 문항과 남은 여백을 재고, 단의 마지막 문항을 뺀 문항에 {gap=N}(빈 줄 1개 = 약 2.47mm)을 더한다.
   python tools/balance.py "output/fit/2교시 인곽 생활.pdf" content/2교시.md          # 제안만 출력
   python tools/balance.py "output/fit/2교시 인곽 생활.pdf" content/2교시.md --apply  # md에 반영
+  python tools/balance.py ... --bottom --apply   # 남는 자리를 문항 사이에 모두 써서 단 아래 모서리까지 채운다(--keep N: 아래에 남길 mm)
 반영한 뒤에는 다시 빌드해 쪽수와 단 배치가 그대로인지 확인한다.
 """
 import re
@@ -13,6 +14,7 @@ import pymupdf
 SCALE = 0.754          # PDF(A4)는 8절의 약 0.754배
 LINE_MM = 2.47         # 빈 문단 1개(5pt, 줄 간격 140%)의 실제 높이
 SAFETY_MM = 12         # 다음 문항이 넘어가지 않도록 남겨 둘 여백(작으면 단이 밀린다)
+BOTTOM_MM = 21         # --bottom: 쪽 번호 위까지의 여백 재기에서 실제로 비는 자리가 거의 없을 때의 값
 
 
 def columns(pdf):
@@ -37,8 +39,14 @@ def columns(pdf):
         items += [tuple(im["bbox"]) for im in p.get_image_info()]
         for side, x0, x1 in (("L", 0, W / 2), ("R", W / 2, W)):
             ys = [y1 for (a, y0, c, y1) in items if a >= x0 - 2 and c <= x1 + 2 and 60 < y0 and y1 < foot + 8]
-            end = max(ys) if ys else foot
-            blank = max(0.0, foot - end) * 25.4 / 72 / scale
+            # 마지막 쪽 '확인 사항' 상자가 있으면 그 위까지만 문항 자리로 본다(상자 위 8mm쯤 남긴다)
+            box = [b[1] for b in p.get_text("blocks") if b[0] >= x0 - 2 and b[2] <= x1 + 2 and "확인사항" in re.sub(r"\s", "", b[4])]
+            limit = foot
+            if box:
+                ys = [v for v in ys if v < box[0] - 1]
+                limit = box[0] + 12 * scale * 72 / 25.4
+            end = max(ys) if ys else limit
+            blank = max(0.0, limit - end) * 25.4 / 72 / scale
             out.append((i + 1, side, [n for _, n in sorted(qs[side])], blank))
     return out
 
@@ -56,7 +64,12 @@ def main():
         if len(qs) < 2 or usable < LINE_MM * len(qs):
             print("%d%s %s 여백 %.0fmm — 그대로" % (page, side, qs, blank))
             continue
-        extra = int(usable / len(qs) / LINE_MM)        # 마지막 문항 아래에도 같은 만큼 남도록 n등분
+        if "--bottom" in sys.argv:                     # 마지막 문항이 단 아래 모서리까지 오도록 남는 자리를 문항 사이에 다 쓴다
+            keep = float(sys.argv[sys.argv.index("--keep") + 1]) if "--keep" in sys.argv else BOTTOM_MM
+            extra = int(max(0.0, blank - keep) / (len(qs) - 1) / LINE_MM)
+            new[qs[-1]] = 0
+        else:
+            extra = int(usable / len(qs) / LINE_MM)    # 마지막 문항 아래에도 같은 만큼 남도록 n등분
         for n in qs[:-1]:
             new[n] = cur[n] + extra
         print("%d%s %s 여백 %.0fmm → 문항 %s 뒤에 빈 줄 %d개(약 %.0fmm) 추가"
