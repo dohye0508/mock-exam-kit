@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import font_manager, rcParams
 from matplotlib.font_manager import FontProperties
-from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
+from matplotlib.patches import Circle, Ellipse, PathPatch, Polygon, Rectangle
+from matplotlib.textpath import TextPath
+from matplotlib.transforms import Affine2D
 from PIL import Image, ImageDraw
 
 for name in ("Malgun Gothic", "맑은 고딕"):
@@ -108,6 +110,15 @@ def omr():
 
 
 # 7번: 게시물 틀(ishs_bob 틀 재사용)에 악보·기타 프로필을 합성
+def glyph(ax, ch, prop, x, y, height):
+    """글자 윤곽을 잘라 왼쪽 아래 (x, y), 높이 height에 정확히 맞춰 그린다."""
+    tp = TextPath((0, 0), ch, size=100, prop=prop)
+    b = tp.get_extents()
+    k = height / b.height
+    tr = Affine2D().translate(-b.x0, -b.y0).scale(k).translate(x, y)
+    ax.add_patch(PathPatch(tr.transform_path(tp), fc="black", ec="none", zorder=5))
+
+
 def score_png(path):
     W, H = 1400, 440
     dpi = 200
@@ -122,9 +133,12 @@ def score_png(path):
     x0, x1 = 30.0, W - 20.0
     for i in range(5):
         ax.plot([x0, x1], [y0 + i * S] * 2, color="black", lw=1.1)
-    ax.text(x0 + 4, y0 + 1.0 * S, "\U0001D11E", fontproperties=MUSIC, fontsize=48, ha="left", va="center")
-    for t, yy in (("4", y0 + 3 * S), ("4", y0 + S)):
-        ax.text(x0 + 125, yy, t, ha="center", va="center", fontsize=19, fontweight="bold", family="DejaVu Serif")
+    # 높은음자리표: 소용돌이 중심이 둘째 줄(솔)에 오고, 위아래로 오선을 벗어나게 그린다
+    glyph(ax, chr(0x1D11E), MUSIC, x0 + 8, y0 - 1.55 * S, 7.3 * S)
+    # 4분의 4박자: 숫자 하나가 오선 두 칸을 꽉 채운다
+    serif = FontProperties(family="DejaVu Serif", weight="bold")
+    for yy in (y0 + 2 * S, y0):
+        glyph(ax, "4", serif, x0 + 146, yy + 3, 2 * S - 6)
     bars = [x0 + 150, x0 + 590, x0 + 1050, x1]
     ax.plot([x0, x0], [y0, y0 + 4 * S], color="black", lw=1.1)
     for b in bars[1:]:
@@ -145,22 +159,22 @@ def score_png(path):
             ax.fill([sx, sx + 34, sx + 30, sx], [sy, sy + d * 44, sy + d * 58, sy + d * 26], color="black", lw=0, zorder=4)
 
     # 1마디: 4분음표 4개 / 2마디: 2분음표, 8분음표, ㉠ / 3마디: 온음표
-    for x, st in zip((x0 + 215, x0 + 320, x0 + 425, x0 + 530), (0, 2, 5, 2)):
+    for x, st in zip((x0 + 245, x0 + 335, x0 + 425, x0 + 515), (0, 2, 5, 2)):
         note(x, st, "quarter")
     note(x0 + 665, 6, "half")
     note(x0 + 830, 4, "eighth")
     ax.add_patch(Rectangle((x0 + 900, y0 - 16), 112, 4 * S + 32, fc="white", ec="black", lw=1.4, zorder=5))
     ax.text(x0 + 956, y0 + 2 * S, "㉠", ha="center", va="center", fontsize=20, zorder=6)
     note(x0 + 1180, 5, "whole")
-    for x, ch in ((x0 + 215, "C"), (x0 + 665, "G"), (x0 + 1180, "C")):
+    for x, ch in ((x0 + 245, "C"), (x0 + 665, "G"), (x0 + 1180, "C")):
         ax.text(x, y0 + 4 * S + 62, ch, ha="center", va="center", fontsize=17, fontweight="bold", family="DejaVu Sans")
-    fig.savefig(path, dpi=dpi, facecolor="white")
+    fig.savefig(path, dpi=dpi * 2, facecolor="white")      # 인쇄에서 뭉개지지 않게 두 배 해상도
     plt.close(fig)
 
 
 def guitar_icon(size):
-    dpi = 200
-    fig = plt.figure(figsize=(size / dpi, size / dpi), dpi=dpi)
+    dpi = 400
+    fig = plt.figure(figsize=(size / 2 / 200, size / 2 / 200), dpi=dpi)
     ax = fig.add_axes([0, 0, 1, 1])
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
@@ -185,13 +199,14 @@ def guitar_icon(size):
 
 def post():
     frame = Image.open(os.path.join(OUT, "life_post_bot_02p.png")).convert("RGB")
+    frame = frame.resize((frame.width * 2, frame.height * 2), Image.LANCZOS)
     tmp = os.path.join(OUT, "_life_score_tmp.png")
     score_png(tmp)
     s = Image.open(tmp).convert("RGB")
-    frame.paste(s, (68, 400))
+    frame.paste(s, (136, 800))
     os.remove(tmp)
     # 프로필 원 안을 기타 그림으로 바꾼다
-    cx, cy, D = 148, 150, 134
+    cx, cy, D = 296, 300, 268
     icon = guitar_icon(D).resize((D, D), Image.LANCZOS)
     mask = Image.new("L", (D * 4, D * 4), 0)
     ImageDraw.Draw(mask).ellipse((0, 0, D * 4 - 1, D * 4 - 1), fill=255)

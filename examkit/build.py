@@ -80,6 +80,8 @@ def build_question(q, img_sink, review_ids=None):
         elif kind == "table":
             flush = {"outmargin": (0, 0, 141, 141), "para_style": ("36", "3", "10")} if payload.get("flush") else {}   # 자료 상자와 양옆을 맞춘다
             parts.append(hwpx.datatable(payload["headers"], payload["rows"], payload["widths"], row_h=payload["row_h"], **flush))
+        elif kind == "space":
+            parts.extend(hwpx.blank() for _ in range(payload))
         elif kind == "figure":
             parts.append(_figure(q, payload, img_sink))
         elif kind == "dialog":
